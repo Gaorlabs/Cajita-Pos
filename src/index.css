@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --font-brand: 'Poppins', sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-marketing: 'Baloo 2', cursive, sans-serif;
+
+  --color-brand-primary: #2E7D5B;
+  --color-brand-hover: #235F45;
+  --color-brand-light: #EAF3EC;
+  --color-brand-crema: #FAF6F0;
+  --color-brand-carbon: #1C2B24;
+  --color-brand-dark: #1C2B24;
+  --color-brand-borde: #E4DFD3;
+  --color-brand-danger: #C0392B;
+  --color-brand-warning: #B87D0F;
+  --color-brand-amber: #B87D0F;
+  --color-brand-amber-text: #633806;
+  --color-brand-success: #2E7D5B;
+}
+
+@layer base {
+  body {
+    background-color: #FAF6F0;
+    color: #1A1A1A;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .font-brand {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .font-marketing {
+    font-family: 'Baloo 2', cursive, sans-serif;
+  }
+}
+
+/* Custom Scrollbar for Sleek POS Experience */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #888888;
+}
+
+/* Thermal Printer and Print Preview Rules */
+@media print {
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-ticket,
+  #printable-ticket * {
+    visibility: visible;
+  }
+
+  #printable-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 12px 10px !important;
+    color: #000 !important;
+    background: #fff !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .print\\:hidden,
+  button,
+  nav,
+  header,
+  aside {
+    display: none !important;
+  }
+}
