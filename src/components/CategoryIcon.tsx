@@ -15,6 +15,10 @@ import {
   Shirt,
   Scissors,
   Wrench,
+  Laptop,
+  Zap,
+  Headphones,
+  HardDrive,
   LucideProps,
 } from 'lucide-react';
 
@@ -39,6 +43,10 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({ name, className = 'w
     Shirt,
     Scissors,
     Wrench,
+    Laptop,
+    Zap,
+    Headphones,
+    HardDrive,
   };
 
   const IconComponent = iconMap[name] || Tag;
@@ -57,7 +65,11 @@ export const AVAILABLE_CATEGORY_ICONS = [
   { id: 'Tag', name: 'Etiqueta / General', icon: Tag },
   { id: 'Package', name: 'Empaque / Caja', icon: Package },
   { id: 'Utensils', name: 'Alimentos / Cocina', icon: Utensils },
-  { id: 'Smartphone', name: 'Electrónica', icon: Smartphone },
+  { id: 'Smartphone', name: 'Celulares / Móvil', icon: Smartphone },
+  { id: 'Laptop', name: 'Cómputo & Laptops', icon: Laptop },
+  { id: 'Zap', name: 'Cargadores & Energía', icon: Zap },
+  { id: 'Headphones', name: 'Audio & Audífonos', icon: Headphones },
+  { id: 'HardDrive', name: 'Memorias & Discos', icon: HardDrive },
   { id: 'Shirt', name: 'Textil / Ropa', icon: Shirt },
   { id: 'Scissors', name: 'Ferretería / Corte', icon: Scissors },
   { id: 'Wrench', name: 'Herramientas', icon: Wrench },

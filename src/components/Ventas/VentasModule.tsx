@@ -113,6 +113,10 @@ export const VentasModule: React.FC = () => {
     shifts,
     sales,
     setActiveModule,
+    isDemoTour,
+    setIsDemoTour,
+    storeProfile,
+    sectorConfig,
   } = usePos();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -449,6 +453,32 @@ export const VentasModule: React.FC = () => {
             )}
           </button>
         </div>
+
+        {isDemoTour && (
+          <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 rounded-2xl p-4 relative overflow-hidden shrink-0 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+            <button
+              onClick={() => setIsDemoTour(false)}
+              className="absolute top-3 right-3 p-1 rounded-lg text-emerald-800 hover:bg-emerald-500/10 transition-all cursor-pointer"
+              title="Cerrar Tour"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex gap-3">
+              <div className="p-2.5 bg-white rounded-xl shadow-xs border border-emerald-500/10 shrink-0 text-[#2E7D5B] hidden sm:block">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="space-y-1 pr-6">
+                <h3 className="font-marketing font-extrabold text-sm text-emerald-950 flex items-center gap-1.5">
+                  <span>🎉 ¡Modo Demo Personalizado de <strong>{storeProfile.name}</strong> activado!</span>
+                </h3>
+                <p className="text-[11px] text-neutral-600 leading-relaxed">
+                  Hemos cargado un catálogo inteligente del rubro <strong>{sectorConfig.shortName}</strong>. 
+                  Prueba a <strong>hacer clic en un producto</strong> para agregarlo al carrito, luego dale al botón <strong>Cobrar</strong> para simular tu primera venta. ¡Siente la rapidez y orden de Cajita POS!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Search & Category Filter Header - Clean & Simple */}
         <div className={`bg-white p-3 sm:p-3.5 rounded-2xl border transition-all space-y-2.5 shrink-0 shadow-xs ${

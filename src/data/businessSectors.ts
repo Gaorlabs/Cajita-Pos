@@ -6,6 +6,7 @@ export type BusinessSectorId =
   | 'cafeteria'   // Cafetería, Panadería, Pastelería
   | 'ropa'        // Ropa, Calzado, Boutique
   | 'perfumeria'  // Perfumería, Cosméticos, Belleza
+  | 'tecnologia'  // Tecnología, Cómputo, Accesorios, Celulares
   | 'general';    // Retail General
 
 export interface BusinessSectorConfig {
@@ -202,6 +203,38 @@ export const BUSINESS_SECTORS: Record<BusinessSectorId, BusinessSectorConfig> = 
       ruc: '20603456789',
       address: 'Av. Arequipa 2450, Lince, Lima',
       phone: '(01) 471-5566',
+    },
+  },
+
+  tecnologia: {
+    id: 'tecnologia',
+    name: 'Tecnología, Cómputo & Accesorios',
+    shortName: 'Tecnología / Cómputo',
+    tagline: 'Venta por código/serie, accesorios, periféricos y garantías',
+    description: 'Catálogo de smartphones, periféricos gamer, cables, memorias y cargadores con control de garantía y stock.',
+    icon: 'Laptop',
+    color: 'sky',
+    badgeColor: 'bg-sky-100 text-sky-900 border-sky-300',
+    bgLight: 'bg-sky-50/40',
+    borderActive: 'border-sky-500 ring-2 ring-sky-500/20',
+    features: {
+      enableBulkSales: false,
+      enableBulkSackPurchases: false,
+      enableCombos: true, // Combos Gamer (Teclado + Mouse + Pad)
+      enablePharmaExpiry: false,
+      enableApparelVariants: true, // Variantes de capacidad (64GB/128GB/256GB) o color
+      enableVolumePacks: false,
+      enableBarcodeQuickScanner: true,
+      enableDailyShiftSummary: true,
+      quickSalePresets: [15, 25, 50, 100, 200],
+      defaultUnit: 'unidad',
+      suggestedUnits: ['unidad', 'set', 'pack', 'pieza', 'caja'],
+    },
+    storeInfo: {
+      storeName: 'CyberTech & Cómputo Perú',
+      ruc: '20609871234',
+      address: 'Av. Wilson 1250 Int. 204, Cercado de Lima',
+      phone: '(01) 433-2121',
     },
   },
 

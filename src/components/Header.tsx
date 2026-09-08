@@ -10,6 +10,8 @@ import {
   Activity,
   Receipt,
   Sliders,
+  LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { OpenShiftModal } from './Ventas/OpenShiftModal';
 import { CloseShiftModal } from './Ventas/CloseShiftModal';
@@ -27,6 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
     getLowStockProducts,
     setActiveModule,
     sectorConfig,
+    logout,
   } = usePos();
 
   const [timeStr, setTimeStr] = useState('');
@@ -243,6 +246,16 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
                   {currentUser.role}
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={logout}
+                title="Volver al Portal de Bienvenida, Onboarding o Demo"
+                className="ml-1 p-1.5 sm:px-2.5 sm:py-1.5 bg-[#FAF6F0] hover:bg-[#EAF3EC] text-neutral-700 hover:text-[#2E7D5B] border border-[#E4DFD3] rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#2E7D5B]" />
+                <span className="hidden sm:inline">Portal / Demo</span>
+                <LogOut className="w-3.5 h-3.5 text-neutral-400 sm:ml-0.5" />
+              </button>
             </div>
           )}
         </div>

@@ -8,6 +8,7 @@ import {
   Sparkles,
   Pill,
   LayoutGrid,
+  Laptop,
   CheckCircle2,
   Sliders,
   Building2,
@@ -75,6 +76,8 @@ export const ConfiguracionModule: React.FC = () => {
         return Sparkles;
       case 'Pill':
         return Pill;
+      case 'Laptop':
+        return Laptop;
       case 'LayoutGrid':
       default:
         return LayoutGrid;

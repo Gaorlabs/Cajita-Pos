@@ -81,6 +81,9 @@ interface PosContextType {
   storeProfile: StoreProfile;
   setBusinessSector: (sectorId: BusinessSectorId, loadSampleCatalog?: boolean) => void;
   updateStoreProfile: (profile: Partial<StoreProfile>) => void;
+  registerTenant: (businessName: string, sectorId: BusinessSectorId, adminName: string) => void;
+  isDemoTour: boolean;
+  setIsDemoTour: (val: boolean) => void;
   
   // Auth
   login: (username: string, pass: string) => boolean;
@@ -132,7 +135,7 @@ interface PosContextType {
 
 const PosContext = createContext<PosContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'pos_retail_app_state_v3';
+const LOCAL_STORAGE_KEY = 'cajita_pos_app_state_v5';
 
 export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load state from local storage or fallback to mock data
@@ -147,7 +150,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const savedProducts: Product[] = parsed.products || INITIAL_PRODUCTS;
 
         return {
-          user: parsed.user || INITIAL_USERS[0],
+          user: parsed.user || null,
           businessSector: sector,
           storeProfile: parsed.storeProfile || BUSINESS_SECTORS[sector].storeInfo,
           categories: parsed.categories || INITIAL_CATEGORIES,
@@ -164,7 +167,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const defaultSector: BusinessSectorId = 'bodega';
     return {
-      user: INITIAL_USERS[0],
+      user: null,
       businessSector: defaultSector,
       storeProfile: BUSINESS_SECTORS[defaultSector].storeInfo,
       categories: INITIAL_CATEGORIES,
@@ -189,6 +192,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [suppliers, setSuppliers] = useState<Supplier[]>(initial.suppliers);
   const [shifts, setShifts] = useState<CashShift[]>(initial.shifts);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isDemoTour, setIsDemoTour] = useState<boolean>(false);
 
   // Active shift is the currently open shift
   const activeShift = shifts.find((s) => s.status === 'open') || null;
@@ -745,6 +749,30 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCart([]);
   };
 
+  const registerTenant = (businessName: string, sectorId: BusinessSectorId, adminName: string) => {
+    // 1. Reset data to that sector template
+    resetToInitialData(sectorId);
+    
+    // 2. Set custom store name
+    setStoreProfile({
+      name: businessName,
+      ruc: '2060' + Math.floor(1000000 + Math.random() * 9000000),
+      address: 'Dirección Comercial Registrada',
+      phone: '999-999-999',
+    });
+    
+    // 3. Create and set the custom user
+    const newUser: User = {
+      id: 'usr-admin',
+      username: 'admin',
+      name: adminName,
+      role: 'admin',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
+    };
+    setCurrentUser(newUser);
+    setActiveModule('ventas');
+  };
+
   return (
     <PosContext.Provider
       value={{
@@ -764,6 +792,9 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         storeProfile,
         setBusinessSector,
         updateStoreProfile,
+        registerTenant,
+        isDemoTour,
+        setIsDemoTour,
         openCashShift,
         closeCashShift,
         login,
