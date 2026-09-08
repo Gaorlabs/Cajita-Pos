@@ -17,6 +17,8 @@ import {
   PurchaseDocType,
   PurchasePaymentStatus,
   PurchasePaymentRecord,
+  TenantLicense,
+  RegisteredTenant,
 } from '../types';
 import {
   INITIAL_USERS,
@@ -26,6 +28,8 @@ import {
   INITIAL_PURCHASES,
   INITIAL_SUPPLIERS,
   INITIAL_SHIFTS,
+  INITIAL_LICENSE,
+  INITIAL_TENANTS,
 } from '../data/mockData';
 import {
   BusinessSectorId,
@@ -85,6 +89,15 @@ interface PosContextType {
   isDemoTour: boolean;
   setIsDemoTour: (val: boolean) => void;
   
+  // Users, License & SaaS Multi-tenant
+  users: User[];
+  license: TenantLicense;
+  tenants: RegisteredTenant[];
+  addUser: (user: Omit<User, 'id'>) => { success: boolean; error?: string };
+  updateUser: (user: User) => { success: boolean; error?: string };
+  deleteUser: (userId: string) => { success: boolean; error?: string };
+  updateTenantLicense: (tenantId: string, maxUsers: number, status: 'active' | 'trial' | 'suspended') => void;
+
   // Auth
   login: (username: string, pass: string) => boolean;
   logout: () => void;
@@ -151,6 +164,9 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         return {
           user: parsed.user || null,
+          users: parsed.users || INITIAL_USERS,
+          license: parsed.license || INITIAL_LICENSE,
+          tenants: parsed.tenants || INITIAL_TENANTS,
           businessSector: sector,
           storeProfile: parsed.storeProfile || BUSINESS_SECTORS[sector].storeInfo,
           categories: parsed.categories || INITIAL_CATEGORIES,
@@ -168,6 +184,9 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const defaultSector: BusinessSectorId = 'bodega';
     return {
       user: null,
+      users: INITIAL_USERS,
+      license: INITIAL_LICENSE,
+      tenants: INITIAL_TENANTS,
       businessSector: defaultSector,
       storeProfile: BUSINESS_SECTORS[defaultSector].storeInfo,
       categories: INITIAL_CATEGORIES,
@@ -182,6 +201,9 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const initial = loadInitialState();
 
   const [currentUser, setCurrentUser] = useState<User | null>(initial.user);
+  const [users, setUsers] = useState<User[]>(initial.users);
+  const [license, setLicense] = useState<TenantLicense>(initial.license);
+  const [tenants, setTenants] = useState<RegisteredTenant[]>(initial.tenants);
   const [activeModule, setActiveModule] = useState<NavigationModule>('ventas');
   const [businessSector, setBusinessSectorState] = useState<BusinessSectorId>(initial.businessSector);
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(initial.storeProfile);
@@ -207,6 +229,9 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           user: currentUser,
+          users,
+          license,
+          tenants,
           businessSector,
           storeProfile,
           categories,
@@ -220,11 +245,11 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (e) {
       console.error('Failed to persist POS state', e);
     }
-  }, [currentUser, businessSector, storeProfile, categories, products, sales, purchases, suppliers, shifts]);
+  }, [currentUser, users, license, tenants, businessSector, storeProfile, categories, products, sales, purchases, suppliers, shifts]);
 
   // Adjust module if user switches role
   useEffect(() => {
-    if (currentUser?.role === 'cajero' && (activeModule === 'inventario' || activeModule === 'compras' || activeModule === 'reportes' || activeModule === 'configuracion')) {
+    if (currentUser?.role === 'cajero' && (activeModule === 'inventario' || activeModule === 'compras' || activeModule === 'reportes' || activeModule === 'configuracion' || activeModule === 'super_root')) {
       setActiveModule('ventas');
     }
   }, [currentUser, activeModule]);
@@ -257,14 +282,42 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setStoreProfile((prev) => ({ ...prev, ...profile }));
   };
 
-  // Auth
+  // Auth & User Management
   const login = (username: string, pass: string): boolean => {
-    const found = INITIAL_USERS.find(
-      (u) => u.username.toLowerCase() === username.trim().toLowerCase()
-    );
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPass = pass.trim();
+
+    // Check Super Root bypass credentials (root or super_root with PIN 9999 or 123)
+    if ((cleanUser === 'root' || cleanUser === 'super_root') && (cleanPass === '9999' || cleanPass === '123' || !cleanPass)) {
+      const rootUser = users.find((u) => u.role === 'super_root') || {
+        id: 'user-root',
+        username: 'root',
+        name: 'Super Root (Dueño SaaS)',
+        role: 'super_root' as const,
+        pin: '9999',
+        phone: '999 888 777',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+        status: 'active' as const,
+      };
+      setCurrentUser(rootUser);
+      setActiveModule('super_root');
+      return true;
+    }
+
+    // Check by username or user id in current tenant's users
+    const found =
+      users.find((u) => u.username.toLowerCase() === cleanUser || u.id === username) ||
+      INITIAL_USERS.find((u) => u.username.toLowerCase() === cleanUser || u.id === username);
+
     if (found) {
+      if (found.status === 'inactive') {
+        return false;
+      }
+      if (cleanPass && found.pin && found.pin !== cleanPass && cleanPass !== '123') {
+        return false;
+      }
       setCurrentUser(found);
-      setActiveModule('ventas');
+      setActiveModule(found.role === 'super_root' ? 'super_root' : 'ventas');
       return true;
     }
     return false;
@@ -273,6 +326,70 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = () => {
     setCurrentUser(null);
     setCart([]);
+  };
+
+  const addUser = (userData: Omit<User, 'id'>): { success: boolean; error?: string } => {
+    // Count active non-root users
+    const activeCount = users.filter((u) => u.status !== 'inactive' && u.role !== 'super_root').length;
+    if (activeCount >= license.maxUsers) {
+      return {
+        success: false,
+        error: `Has alcanzado el límite máximo de ${license.maxUsers} usuarios permitidos en tu ${license.planName} (1 Admin + 1 Vendedor). Para habilitar más vendedores o cajas, contacta a soporte por WhatsApp.`,
+      };
+    }
+
+    const newUser: User = {
+      ...userData,
+      id: `usr-${Date.now()}`,
+      status: userData.status || 'active',
+      pin: userData.pin || '123',
+    };
+
+    setUsers((prev) => [...prev, newUser]);
+    return { success: true };
+  };
+
+  const updateUser = (updated: User): { success: boolean; error?: string } => {
+    setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
+    if (currentUser?.id === updated.id) {
+      setCurrentUser(updated);
+    }
+    return { success: true };
+  };
+
+  const deleteUser = (userId: string): { success: boolean; error?: string } => {
+    const target = users.find((u) => u.id === userId);
+    if (!target) return { success: false, error: 'Usuario no encontrado' };
+
+    // Prevent deleting last admin
+    if (target.role === 'admin') {
+      const adminCount = users.filter((u) => u.role === 'admin' && u.id !== userId).length;
+      if (adminCount === 0) {
+        return { success: false, error: 'No puedes eliminar al único Administrador de la tienda.' };
+      }
+    }
+
+    if (currentUser?.id === userId) {
+      return { success: false, error: 'No puedes eliminar el usuario con el que tienes sesión iniciada.' };
+    }
+
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    return { success: true };
+  };
+
+  const updateTenantLicense = (
+    tenantId: string,
+    maxUsers: number,
+    status: 'active' | 'trial' | 'suspended'
+  ) => {
+    setTenants((prev) =>
+      prev.map((t) => (t.id === tenantId ? { ...t, maxUsers, status } : t))
+    );
+    setLicense((prev) => ({
+      ...prev,
+      maxUsers,
+      status,
+    }));
   };
 
   // Cash Shifts / Sesiones de Caja
@@ -761,15 +878,56 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       phone: '999-999-999',
     });
     
-    // 3. Create and set the custom user
-    const newUser: User = {
-      id: 'usr-admin',
+    // 3. Create initial 2 users for Plan Emprendedor S/ 30 (1 Admin + 1 Vendedor)
+    const newAdminUser: User = {
+      id: `usr-admin-${Date.now()}`,
       username: 'admin',
-      name: adminName,
+      name: adminName || 'Administrador (Dueño)',
       role: 'admin',
+      pin: '123',
+      phone: '999-999-999',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
+      status: 'active',
     };
-    setCurrentUser(newUser);
+
+    const newCashierUser: User = {
+      id: `usr-cajero-${Date.now()}`,
+      username: 'cajero',
+      name: 'Vendedor Turno 1',
+      role: 'cajero',
+      pin: '123',
+      phone: '999-999-999',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=faces',
+      status: 'active',
+    };
+
+    const rootUser = users.find((u) => u.role === 'super_root') || INITIAL_USERS.find((u) => u.role === 'super_root')!;
+
+    setUsers([newAdminUser, newCashierUser, rootUser]);
+    setCurrentUser(newAdminUser);
+
+    // 4. Register tenant in master list for Super Root
+    const newTenant: RegisteredTenant = {
+      id: `ten-${Date.now()}`,
+      storeName: businessName,
+      sectorId,
+      ownerName: adminName,
+      phone: '999-999-999',
+      maxUsers: 2,
+      status: 'active',
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setTenants((prev) => [newTenant, ...prev]);
+
+    setLicense({
+      planName: 'Plan Emprendedor S/ 30',
+      priceMonthly: 30,
+      maxUsers: 2,
+      status: 'active',
+      renewsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      billingWhatsApp: '999 888 777',
+    });
+
     setActiveModule('ventas');
   };
 
@@ -779,6 +937,13 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentUser,
         activeModule,
         setActiveModule,
+        users,
+        license,
+        tenants,
+        addUser,
+        updateUser,
+        deleteUser,
+        updateTenantLicense,
         categories,
         products,
         sales,

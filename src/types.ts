@@ -1,11 +1,34 @@
-export type UserRole = 'admin' | 'cajero';
+export type UserRole = 'super_root' | 'admin' | 'cajero';
 
 export interface User {
   id: string;
   username: string;
   name: string;
   role: UserRole;
+  pin?: string;
+  phone?: string;
   avatar?: string;
+  status?: 'active' | 'inactive';
+}
+
+export interface TenantLicense {
+  planName: string; // e.g. "Plan Emprendedor S/ 30"
+  priceMonthly: number; // 30
+  maxUsers: number; // 2 (1 Admin + 1 Vendedor)
+  status: 'active' | 'trial' | 'suspended';
+  renewsAt?: string;
+  billingWhatsApp?: string;
+}
+
+export interface RegisteredTenant {
+  id: string;
+  storeName: string;
+  sectorId: string;
+  ownerName: string;
+  phone: string;
+  maxUsers: number;
+  status: 'active' | 'trial' | 'suspended';
+  createdAt: string;
 }
 
 export interface Category {
@@ -173,4 +196,4 @@ export interface Purchase {
   notes?: string;
 }
 
-export type NavigationModule = 'ventas' | 'inventario' | 'compras' | 'reportes' | 'mis_ventas' | 'configuracion';
+export type NavigationModule = 'ventas' | 'inventario' | 'compras' | 'reportes' | 'mis_ventas' | 'configuracion' | 'super_root';

@@ -45,6 +45,7 @@ import {
   Coins,
   Shirt,
   ChevronDown,
+  Columns,
 } from 'lucide-react';
 
 const getCategoryStyling = (catName: string = '') => {
@@ -123,7 +124,15 @@ export const VentasModule: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
-  const [mobileView, setMobileView] = useState<'catalog' | 'cart'>('catalog');
+  // View mode for responsive devices: 'catalog' (full catalog), 'cart' (full cart), or 'split' (side-by-side)
+  const [posViewMode, setPosViewMode] = useState<'catalog' | 'cart' | 'split'>(() => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth >= 1024) return 'split';
+      if (window.innerWidth >= 768) return 'split';
+      return 'catalog';
+    }
+    return 'catalog';
+  });
 
   // Customer in cart
   const [cartCustomer, setCartCustomer] = useState('Cliente General');
@@ -401,7 +410,9 @@ export const VentasModule: React.FC = () => {
     setShowPaymentModal(false);
     if (sale) {
       setCompletedSale(sale);
-      setMobileView('catalog');
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        setPosViewMode('catalog');
+      }
       setCartCustomer('Cliente General');
     }
   };
@@ -417,37 +428,55 @@ export const VentasModule: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col md:flex-row overflow-hidden bg-[#FAF6F0]">
-      {/* LEFT SECTION: PRODUCT CATALOG (60-65% width on desktop, full width on mobile/tablet) */}
+      {/* LEFT SECTION: PRODUCT CATALOG (Adaptive: 100% on mobile/tablet catalog mode, ~55-65% in split/desktop mode) */}
       <div
-        className={`flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-4 md:p-4 lg:p-6 space-y-3 sm:space-y-4 ${
-          mobileView === 'catalog' ? 'flex' : 'hidden md:flex'
+        className={`flex-1 flex flex-col h-full overflow-hidden p-2.5 sm:p-3.5 md:p-4 lg:p-6 space-y-2.5 sm:space-y-4 ${
+          posViewMode === 'catalog' || posViewMode === 'split' ? 'flex' : 'hidden lg:flex'
         }`}
       >
-        {/* Mobile / Tablet Segmented Switcher (< md) */}
-        <div className="md:hidden flex items-center bg-white p-1 rounded-2xl border border-neutral-200 shadow-xs shrink-0">
+        {/* Mobile & Tablet Segmented View Switcher (< lg) */}
+        <div className="lg:hidden flex items-center bg-white p-1 rounded-2xl border border-neutral-200 shadow-xs shrink-0 select-none">
           <button
-            onClick={() => setMobileView('catalog')}
-            className={`flex-1 min-h-[42px] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              mobileView === 'catalog'
+            type="button"
+            onClick={() => setPosViewMode('catalog')}
+            className={`flex-1 min-h-[38px] sm:min-h-[42px] py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              posViewMode === 'catalog'
                 ? 'bg-neutral-950 text-white shadow-xs'
                 : 'text-neutral-600 hover:text-black'
             }`}
           >
-            <Tag className="w-3.5 h-3.5" />
-            <span>Catálogo ({filteredProducts.length})</span>
+            <Tag className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Catálogo ({filteredProducts.length})</span>
           </button>
+
+          {/* Dedicated Split Mode Button for Tablet Screens (sm and md: 640px to 1023px) */}
           <button
-            onClick={() => setMobileView('cart')}
-            className={`flex-1 min-h-[42px] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              mobileView === 'cart'
+            type="button"
+            onClick={() => setPosViewMode('split')}
+            className={`hidden sm:flex flex-1 min-h-[38px] sm:min-h-[42px] py-1.5 px-2 rounded-xl text-xs font-black items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              posViewMode === 'split'
+                ? 'bg-[#2E7D5B] text-white shadow-xs'
+                : 'text-neutral-600 hover:text-black'
+            }`}
+            title="Vista dividida: catálogo y carrito simultáneos en tablet"
+          >
+            <Columns className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Dividido (POS)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPosViewMode('cart')}
+            className={`flex-1 min-h-[38px] sm:min-h-[42px] py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              posViewMode === 'cart'
                 ? 'bg-emerald-500 text-neutral-950 shadow-xs'
                 : 'text-neutral-600 hover:text-black'
             }`}
           >
-            <ShoppingCart className="w-3.5 h-3.5" />
-            <span>Carrito ({totalItemCount})</span>
+            <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Carrito ({totalItemCount})</span>
             {totalItemCount > 0 && (
-              <span className="font-mono text-[10px] bg-neutral-950 text-white px-1.5 py-0.5 rounded font-black">
+              <span className="font-mono text-[10px] bg-neutral-950 text-white px-1.5 py-0.5 rounded font-black whitespace-nowrap shrink-0">
                 S/ {finalTotal.toFixed(2)}
               </span>
             )}
@@ -840,8 +869,8 @@ export const VentasModule: React.FC = () => {
               })}
             </div>
           ) : (
-            /* GRID VIEW MODE (Clean, intuitive, uncluttered cards) */
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            /* GRID VIEW MODE (Responsive for Mobile 2-cols, Tablet 2-cols split or 3-cols, Desktop 3-4 cols) */
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-2 sm:gap-3">
               {filteredProducts.map((product) => {
                 const category = categories.find((c) => c.id === product.categoryId);
                 const catStyling = getCategoryStyling(category?.name);
@@ -862,7 +891,7 @@ export const VentasModule: React.FC = () => {
                     key={product.id}
                     onClick={handleCardClick}
                     disabled={isOutOfStock}
-                    className={`bg-white rounded-2xl p-3.5 sm:p-4 border text-left flex flex-col justify-between transition-all duration-150 relative group cursor-pointer ${
+                    className={`bg-white rounded-2xl p-2.5 sm:p-3.5 border text-left flex flex-col justify-between transition-all duration-150 relative group cursor-pointer min-h-[160px] select-none ${
                       isOutOfStock
                         ? 'opacity-50 border-neutral-200 bg-neutral-50 cursor-not-allowed'
                         : inCartItem
@@ -872,16 +901,16 @@ export const VentasModule: React.FC = () => {
                   >
                     {/* Badge Indicator for Cart quantity */}
                     {inCartItem && (
-                      <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-[#2E7D5B] text-[#FAF6F0] font-bold text-xs shadow-xs">
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-[#2E7D5B] text-[#FAF6F0] font-bold text-[11px] shadow-xs">
                         {inCartItem.quantity % 1 === 0 ? inCartItem.quantity : inCartItem.quantity.toFixed(2)} {isBulk ? product.unit || 'kg' : ''}
                       </div>
                     )}
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5 sm:space-y-2">
                       {/* Top Row: Icon + SKU */}
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center justify-between gap-1.5">
                         <div
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${
                             isCombo
                               ? 'bg-[#FAEEDA] text-[#633806]'
                               : isBulk
@@ -890,53 +919,53 @@ export const VentasModule: React.FC = () => {
                           }`}
                         >
                           {isCombo ? (
-                            <Gift className="w-4 h-4" />
+                            <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           ) : isBulk ? (
-                            <Scale className="w-4 h-4" />
+                            <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           ) : (
-                            <CategoryIcon name={category?.icon || 'Tag'} className="w-4 h-4" />
+                            <CategoryIcon name={category?.icon || 'Tag'} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           )}
                         </div>
-                        <span className="font-mono text-[10px] font-normal text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded">
+                        <span className="font-mono text-[9px] sm:text-[10px] font-normal text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded truncate max-w-[80px]">
                           {product.sku}
                         </span>
                       </div>
 
                       {/* Product Title */}
                       <div>
-                        <h3 className="font-bold text-xs sm:text-sm text-[#141412] line-clamp-2 leading-snug">
+                        <h3 className="font-bold text-xs sm:text-sm text-[#141412] line-clamp-2 leading-snug min-h-[2rem] sm:min-h-[2.5rem]">
                           {product.name}
                         </h3>
 
                         {/* Optional Single Clean Tag */}
                         {isCombo ? (
-                          <span className="inline-block mt-1 text-[10px] font-bold text-[#633806] bg-[#FAEEDA] px-2 py-0.5 rounded-md border border-[#EF9F27]/30">
+                          <span className="inline-block mt-0.5 text-[9px] sm:text-[10px] font-bold text-[#633806] bg-[#FAEEDA] px-1.5 py-0.5 rounded-md border border-[#EF9F27]/30 truncate">
                             Combo Pack
                           </span>
                         ) : isBulk ? (
-                          <span className="inline-block mt-1 text-[10px] font-bold text-cyan-800 bg-cyan-50 px-2 py-0.5 rounded-md border border-cyan-200">
-                            Venta a Granel
+                          <span className="inline-block mt-0.5 text-[9px] sm:text-[10px] font-bold text-cyan-800 bg-cyan-50 px-1.5 py-0.5 rounded-md border border-cyan-200 truncate">
+                            Granel
                           </span>
                         ) : product.hasVariants && product.variants && product.variants.length > 0 ? (
-                          <span className="inline-block mt-1 text-[10px] font-bold text-[#2E7D5B] bg-[#EAF3EC] px-2 py-0.5 rounded-md border border-[#2E7D5B]/20">
-                            {product.variants.length} Variantes
+                          <span className="inline-block mt-0.5 text-[9px] sm:text-[10px] font-bold text-[#2E7D5B] bg-[#EAF3EC] px-1.5 py-0.5 rounded-md border border-[#2E7D5B]/20 truncate">
+                            {product.variants.length} Var.
                           </span>
                         ) : null}
                       </div>
                     </div>
 
                     {/* Bottom Row: Price + Stock + Add Action */}
-                    <div className="pt-3 mt-3 border-t border-neutral-100 flex items-center justify-between gap-2">
-                      <div>
-                        <div className="text-base sm:text-lg font-bold text-[#141412] font-mono tracking-tight leading-none">
+                    <div className="pt-2 mt-2 border-t border-neutral-100 flex items-center justify-between gap-1.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm sm:text-base font-black text-[#141412] font-mono tracking-tight leading-none whitespace-nowrap">
                           S/ {product.salePrice.toFixed(2)}
-                          {isBulk && <span className="text-[10px] font-normal text-neutral-400">/{product.unit || 'kg'}</span>}
+                          {isBulk && <span className="text-[9px] font-normal text-neutral-400">/{product.unit || 'kg'}</span>}
                         </div>
-                        <div className="mt-1 text-[10px] font-normal text-neutral-500">
+                        <div className="mt-1 text-[9px] sm:text-[10px] font-normal text-neutral-500 truncate">
                           {isOutOfStock ? (
                             <span className="font-bold text-rose-600">Agotado</span>
                           ) : isLowStock ? (
-                            <span className="font-semibold text-amber-700">Stock bajo: {effectiveStock}</span>
+                            <span className="font-semibold text-amber-700">Stock: {effectiveStock}</span>
                           ) : (
                             <span>• {effectiveStock} disp.</span>
                           )}
@@ -944,7 +973,7 @@ export const VentasModule: React.FC = () => {
                       </div>
 
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs transition-all ${
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
                           isOutOfStock
                             ? 'bg-neutral-100 text-neutral-300'
                             : inCartItem
@@ -956,7 +985,7 @@ export const VentasModule: React.FC = () => {
                             : 'bg-neutral-100 text-neutral-800 group-hover:bg-[#2E7D5B] group-hover:text-[#FAF6F0]'
                         }`}
                       >
-                        {isBulk ? <Scale className="w-4 h-4 font-bold" /> : <Plus className="w-4 h-4 font-bold" />}
+                        {isBulk ? <Scale className="w-3.5 h-3.5 font-bold" /> : <Plus className="w-3.5 h-3.5 font-bold" />}
                       </div>
                     </div>
                   </button>
@@ -966,11 +995,11 @@ export const VentasModule: React.FC = () => {
           )}
         </div>
 
-        {/* Mobile & Tablet Sticky Quick Cart Floating Bar */}
-        {cart.length > 0 && (
-          <div className="md:hidden shrink-0 pt-1">
+        {/* Mobile & Tablet Quick Cart Floating Bar (visible when catalog is active and cart has items) */}
+        {cart.length > 0 && posViewMode === 'catalog' && (
+          <div className="lg:hidden shrink-0 pt-1">
             <button
-              onClick={() => setMobileView('cart')}
+              onClick={() => setPosViewMode('cart')}
               className="w-full bg-neutral-950 text-white p-3 sm:p-3.5 rounded-2xl shadow-xl border border-neutral-800 flex items-center justify-between active:scale-[0.99] transition-all cursor-pointer hover:border-emerald-500"
             >
               <div className="flex items-center gap-2.5">
@@ -995,18 +1024,20 @@ export const VentasModule: React.FC = () => {
         )}
       </div>
 
-      {/* RIGHT SECTION: CART & CHECKOUT PANEL (35-40% width on desktop, full screen on mobile/tablet) */}
+      {/* RIGHT SECTION: CART & CHECKOUT PANEL (Adaptive: full on mobile/tablet cart view, 320px in split view, 360-420px on PC) */}
       <div
-        className={`w-full md:w-[360px] lg:w-[400px] xl:w-[440px] bg-white border-l border-neutral-200 flex flex-col h-full shadow-lg shrink-0 ${
-          mobileView === 'cart' ? 'flex' : 'hidden md:flex'
+        className={`w-full lg:w-[360px] xl:w-[420px] bg-white border-l border-neutral-200 flex flex-col h-full shadow-lg shrink-0 ${
+          posViewMode === 'split' ? 'md:w-[320px]' : ''
+        } ${
+          posViewMode === 'cart' || posViewMode === 'split' ? 'flex' : 'hidden lg:flex'
         }`}
       >
         {/* Cart Header */}
         <div className="p-3.5 sm:p-4 border-b border-neutral-800 flex items-center justify-between bg-black text-white">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setMobileView('catalog')}
-              className="md:hidden text-neutral-300 hover:text-white px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-neutral-700 cursor-pointer text-xs font-bold flex items-center gap-1 active:scale-95"
+              onClick={() => setPosViewMode('catalog')}
+              className="lg:hidden text-neutral-300 hover:text-white px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-neutral-700 cursor-pointer text-xs font-bold flex items-center gap-1 active:scale-95"
               title="Volver a los productos"
             >
               ← Volver

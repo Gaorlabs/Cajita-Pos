@@ -16,17 +16,19 @@ import {
   Building2,
   PhoneCall,
   Check,
-  Laptop
+  Laptop,
+  ShieldAlert,
+  ExternalLink,
 } from 'lucide-react';
-import { INITIAL_USERS } from '../data/mockData';
 import { BUSINESS_SECTORS, BusinessSectorId } from '../data/businessSectors';
 import { CajitaLogo } from './CajitaLogo';
+import { MariaLogo } from './MariaLogo';
+import { User as UserType } from '../types';
 
 type ActiveView = 'main_menu' | 'register_business' | 'demo_modal' | 'pin_entry';
 
 export const LoginView: React.FC = () => {
-  const { login, registerTenant, setIsDemoTour } = usePos();
-
+  const { login, registerTenant, setIsDemoTour, users } = usePos();
   const [activeView, setActiveView] = useState<ActiveView>('main_menu');
   const [error, setError] = useState('');
 
@@ -41,7 +43,8 @@ export const LoginView: React.FC = () => {
   const [demoStoreName, setDemoStoreName] = useState('');
 
   // PIN Entry
-  const [selectedUser, setSelectedUser] = useState<(typeof INITIAL_USERS)[0]>(INITIAL_USERS[0]);
+  const availableUsers = users.length > 0 ? users : [];
+  const [selectedUser, setSelectedUser] = useState<UserType>(availableUsers[0]);
   const [pin, setPin] = useState('');
 
   // Acciones de PIN
@@ -51,9 +54,10 @@ export const LoginView: React.FC = () => {
       setPin(newPin);
       setError('');
       if (newPin.length === 4) {
-        const success = login(selectedUser.username, '123');
+        const currentUserTarget = selectedUser || availableUsers[0];
+        const success = login(currentUserTarget.username, newPin);
         if (!success) {
-          setError('PIN incorrecto (prueba "123")');
+          setError(`PIN incorrecto (prueba "${currentUserTarget.pin || '123'}")`);
           setPin('');
         }
       }
@@ -235,9 +239,55 @@ export const LoginView: React.FC = () => {
 
           </div>
 
-          {/* Footer en neutral sutil */}
-          <div className="text-center text-[11px] text-neutral-500 font-medium pt-1">
-            Hecho para comercios, tecnología y tiendas en Perú 🇵🇪
+          {/* Super Root & Dev Attribution Footer with MarIA Logo */}
+          <div className="pt-3 flex flex-col items-center gap-2 border-t border-[#E4DFD3]/80">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveView('pin_entry');
+                  const rootUser = availableUsers.find((u) => u.role === 'super_root') || {
+                    id: 'user-root',
+                    username: 'root',
+                    name: 'Super Root (Dueño)',
+                    role: 'super_root' as const,
+                    pin: '9999',
+                  };
+                  setSelectedUser(rootUser);
+                  setPin('');
+                  setError('');
+                }}
+                className="text-[10px] font-bold text-neutral-400 hover:text-[#2E7D5B] flex items-center gap-1 cursor-pointer transition-colors"
+                title="Acceso Maestro Super Root (PIN: 9999)"
+              >
+                <ShieldAlert className="w-3 h-3" />
+                <span>Acceso Super Root (PIN: 9999)</span>
+              </button>
+            </div>
+
+            <div className="text-center text-[11px] text-neutral-500 font-medium">
+              Hecho para comercios, tecnología y tiendas en Perú 🇵🇪
+            </div>
+
+            {/* MarIA Official Branding & Website Link */}
+            <div className="mt-0.5 pt-1.5 flex flex-col items-center">
+              <MariaLogo
+                size="md"
+                variant="dark"
+                showByline={true}
+                prefix="Desarrollado por"
+                withLink={true}
+              />
+              <a
+                href="https://maria-vert.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-bold text-[#7C3AED] hover:text-[#6D28D9] underline decoration-[#7C3AED]/40 hover:decoration-[#6D28D9] flex items-center gap-1 mt-1 transition-colors group"
+              >
+                <span>https://maria-vert.vercel.app/</span>
+                <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100" />
+              </a>
+            </div>
           </div>
 
         </div>
@@ -554,8 +604,8 @@ export const LoginView: React.FC = () => {
             <h2 className="font-marketing font-black text-base sm:text-lg text-[#1C2B24] leading-tight">
               ¿Quién está en caja?
             </h2>
-            <div className="flex justify-center gap-1.5">
-              {INITIAL_USERS.map((u) => (
+            <div className="flex justify-center flex-wrap gap-1.5">
+              {availableUsers.map((u) => (
                 <button
                   key={u.id}
                   onClick={() => {
@@ -564,13 +614,19 @@ export const LoginView: React.FC = () => {
                     setError('');
                   }}
                   className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                    selectedUser.id === u.id
+                    selectedUser?.id === u.id
                       ? 'bg-[#2E7D5B] text-white shadow-xs'
                       : 'bg-[#FAF6F0] text-neutral-600 hover:bg-[#EAF3EC]'
                   }`}
                 >
                   <User className="w-3 h-3" />
                   <span>{u.name.split(' ')[0]}</span>
+                  {u.role === 'admin' && (
+                    <span className="text-[9px] bg-white/20 px-1 rounded-sm uppercase font-semibold">Admin</span>
+                  )}
+                  {u.role === 'super_root' && (
+                    <span className="text-[9px] bg-amber-400 text-neutral-900 px-1 rounded-sm uppercase font-bold">Root</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -623,8 +679,13 @@ export const LoginView: React.FC = () => {
           </div>
 
           <p className="text-center text-[10px] text-neutral-400 font-medium">
-            PIN demo: <strong>123</strong>
+            PIN para {selectedUser?.name || 'usuario'}:{' '}
+            <strong className="text-neutral-700">{selectedUser?.pin || '123'}</strong>
           </p>
+
+          <div className="pt-1.5 border-t border-[#E4DFD3]/60 flex flex-col items-center">
+            <MariaLogo size="xs" variant="dark" prefix="Desarrollado por" withLink={true} />
+          </div>
 
         </div>
       )}

@@ -1,26 +1,77 @@
-import { Category, Product, Supplier, Sale, Purchase, User, CashShift } from '../types';
+import { Category, Product, Supplier, Sale, Purchase, User, CashShift, TenantLicense, RegisteredTenant } from '../types';
 
 export const INITIAL_USERS: User[] = [
   {
     id: 'user-admin',
     username: 'admin',
-    name: 'Administrador Principal',
+    name: 'Administrador (Dueño)',
     role: 'admin',
+    pin: '123',
+    phone: '987 654 321',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80',
+    status: 'active',
   },
   {
-    id: 'user-cajero1',
+    id: 'user-cajero',
     username: 'cajero',
-    name: 'Carlos Cajero',
+    name: 'Carlos Vendedor',
     role: 'cajero',
+    pin: '123',
+    phone: '955 443 322',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+    status: 'active',
   },
   {
-    id: 'user-cajero2',
-    username: 'maria',
-    name: 'María Torres',
-    role: 'cajero',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
+    id: 'user-root',
+    username: 'root',
+    name: 'Super Root (Dueño SaaS)',
+    role: 'super_root',
+    pin: '9999',
+    phone: '999 888 777',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+    status: 'active',
+  },
+];
+
+export const INITIAL_LICENSE: TenantLicense = {
+  planName: 'Plan Emprendedor S/ 30',
+  priceMonthly: 30,
+  maxUsers: 2, // 1 Admin + 1 Vendedor
+  status: 'active',
+  renewsAt: '2026-10-08',
+  billingWhatsApp: '999 888 777',
+};
+
+export const INITIAL_TENANTS: RegisteredTenant[] = [
+  {
+    id: 'ten-1',
+    storeName: 'CyberTech & Cómputo Perú',
+    sectorId: 'tecnologia',
+    ownerName: 'Carlos Silva',
+    phone: '987 654 321',
+    maxUsers: 2,
+    status: 'active',
+    createdAt: '2026-08-15',
+  },
+  {
+    id: 'ten-2',
+    storeName: 'Boutique San Isidro',
+    sectorId: 'ropa',
+    ownerName: 'Rosa Meléndez',
+    phone: '981 234 567',
+    maxUsers: 2,
+    status: 'active',
+    createdAt: '2026-08-20',
+  },
+  {
+    id: 'ten-3',
+    storeName: 'Minimarket Los Andes',
+    sectorId: 'bodega',
+    ownerName: 'Jorge Quispe',
+    phone: '999 112 233',
+    maxUsers: 2,
+    status: 'active',
+    createdAt: '2026-08-28',
   },
 ];
 

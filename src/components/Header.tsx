@@ -12,16 +12,24 @@ import {
   Sliders,
   LogOut,
   Sparkles,
+  ExternalLink,
 } from 'lucide-react';
+import { MariaLogo } from './MariaLogo';
 import { OpenShiftModal } from './Ventas/OpenShiftModal';
 import { CloseShiftModal } from './Ventas/CloseShiftModal';
 import { ShiftSummaryModal } from './Ventas/ShiftSummaryModal';
 
 interface HeaderProps {
   onToggleMobileSidebar: () => void;
+  isSidebarCollapsed?: boolean;
+  onToggleSidebarCollapse?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onToggleMobileSidebar,
+  isSidebarCollapsed = false,
+  onToggleSidebarCollapse,
+}) => {
   const {
     currentUser,
     activeShift,
@@ -93,23 +101,34 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
     }
   };
 
+  const handleMenuButtonClick = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      onToggleMobileSidebar();
+    } else if (onToggleSidebarCollapse) {
+      onToggleSidebarCollapse();
+    } else {
+      onToggleMobileSidebar();
+    }
+  };
+
   return (
     <>
-      <header className="h-16 bg-white border-b border-neutral-200 px-4 md:px-6 flex items-center justify-between sticky top-0 z-20">
-        {/* Left side: Mobile menu toggle + Date & Time + Shift Options */}
-        <div className="flex items-center gap-3 flex-wrap">
+      <header className="h-16 bg-white border-b border-neutral-200 px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 select-none">
+        {/* Left side: Mobile menu toggle / Rail toggle + Date & Time + Shift Options */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
-            onClick={onToggleMobileSidebar}
-            className="md:hidden p-2 text-neutral-800 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
-            aria-label="Toggle menu"
+            onClick={handleMenuButtonClick}
+            className="p-2 text-neutral-800 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer shrink-0"
+            aria-label="Alternar menú lateral"
+            title={isSidebarCollapsed ? "Expandir menú lateral" : "Colapsar menú lateral"}
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-5 h-5 text-neutral-800" />
           </button>
 
           {/* Date & Time */}
-          <div className="hidden sm:flex items-center gap-1.5 text-[#5F5E5A] text-xs font-normal border-r border-neutral-200 pr-3">
+          <div className="hidden md:flex items-center gap-1.5 text-[#5F5E5A] text-xs font-normal border-r border-neutral-200 pr-3 shrink-0">
             <Clock className="w-3.5 h-3.5 text-[#5F5E5A]" />
-            <span>{timeStr}</span>
+            <span className="whitespace-nowrap">{timeStr}</span>
           </div>
 
           {/* Shift status & Today Sales as simple text with icons, no background pills */}
@@ -242,9 +261,24 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
               </div>
               <div className="hidden md:block text-right leading-tight">
                 <p className="text-xs font-bold text-neutral-900">{currentUser.name}</p>
-                <p className="text-[10px] text-emerald-600 uppercase tracking-wider font-bold">
-                  {currentUser.role}
+                <p className={`text-[10px] uppercase tracking-wider font-bold ${
+                  currentUser.role === 'super_root'
+                    ? 'text-amber-600 font-black'
+                    : currentUser.role === 'admin'
+                    ? 'text-emerald-600'
+                    : 'text-neutral-500'
+                }`}>
+                  {currentUser.role === 'super_root' ? 'Super Root' : currentUser.role}
                 </p>
+              </div>
+              <div className="hidden lg:flex items-center">
+                <MariaLogo
+                  size="xs"
+                  variant="dark"
+                  prefix="Desarrollado por"
+                  withLink={true}
+                  className="bg-neutral-100/90 hover:bg-neutral-200/80 px-2.5 py-1 rounded-xl border border-neutral-200 shadow-2xs"
+                />
               </div>
               <button
                 type="button"

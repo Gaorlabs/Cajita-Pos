@@ -9,12 +9,31 @@ import { InventarioModule } from './components/Inventario/InventarioModule';
 import { ComprasModule } from './components/Compras/ComprasModule';
 import { ReportesModule } from './components/Reportes/ReportesModule';
 import { ConfiguracionModule } from './components/Configuracion/ConfiguracionModule';
+import { SuperRootModule } from './components/SuperRoot/SuperRootModule';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { X } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
   const { currentUser, activeModule } = usePos();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      // Default to collapsed (Rail: 68px) on tablets (< 1280px) to give maximum space to POS
+      return window.innerWidth < 1280;
+    }
+    return false;
+  });
+
+  // Automatically adapt sidebar when window is resized across tablet / desktop threshold
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (!currentUser) {
     return <LoginView />;
@@ -27,13 +46,15 @@ const MainAppContent: React.FC = () => {
       case 'mis_ventas':
         return <MisVentasView />;
       case 'inventario':
-        return currentUser.role === 'admin' ? <InventarioModule /> : <VentasModule />;
+        return currentUser.role === 'admin' || currentUser.role === 'super_root' ? <InventarioModule /> : <VentasModule />;
       case 'compras':
-        return currentUser.role === 'admin' ? <ComprasModule /> : <VentasModule />;
+        return currentUser.role === 'admin' || currentUser.role === 'super_root' ? <ComprasModule /> : <VentasModule />;
       case 'reportes':
-        return currentUser.role === 'admin' ? <ReportesModule /> : <VentasModule />;
+        return currentUser.role === 'admin' || currentUser.role === 'super_root' ? <ReportesModule /> : <VentasModule />;
       case 'configuracion':
-        return currentUser.role === 'admin' ? <ConfiguracionModule /> : <VentasModule />;
+        return currentUser.role === 'admin' || currentUser.role === 'super_root' ? <ConfiguracionModule /> : <VentasModule />;
+      case 'super_root':
+        return currentUser.role === 'super_root' ? <SuperRootModule /> : <VentasModule />;
       default:
         return <VentasModule />;
     }
@@ -41,12 +62,19 @@ const MainAppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF6F0] flex flex-col font-sans text-[#1A1A1A] antialiased selection:bg-[#2E7D5B] selection:text-white">
-      <Header onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} />
+      <Header
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebarCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Desktop Sidebar */}
-        <div className="hidden md:block shrink-0">
-          <Sidebar />
+        {/* Responsive Sidebar (Rail on tablet, full or rail on PC) */}
+        <div className="hidden md:block shrink-0 h-full">
+          <Sidebar
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          />
         </div>
 
         {/* Mobile Sidebar Overlay Drawer */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePos } from '../../context/PosContext';
 import { BusinessSectorId, BUSINESS_SECTORS } from '../../data/businessSectors';
+import { UserManagementSection } from './UserManagementSection';
 import {
   Store,
   Coffee,
@@ -24,6 +25,7 @@ import {
   Sparkle,
   Check,
   Info,
+  Users,
 } from 'lucide-react';
 
 export const ConfiguracionModule: React.FC = () => {
@@ -36,6 +38,7 @@ export const ConfiguracionModule: React.FC = () => {
     resetToInitialData,
   } = usePos();
 
+  const [activeTab, setActiveTab] = useState<'tienda' | 'usuarios'>('tienda');
   const [selectedSector, setSelectedSector] = useState<BusinessSectorId>(businessSector);
   const [loadCatalogOption, setLoadCatalogOption] = useState(true);
   const [profileForm, setProfileForm] = useState(storeProfile);
@@ -147,8 +150,43 @@ export const ConfiguracionModule: React.FC = () => {
         )}
       </div>
 
-      {/* Grid of Business Sectors */}
-      <div className="space-y-3">
+      {/* Tabs Switcher: Tienda & Rubro vs Usuarios & Licencia */}
+      <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('tienda')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+            activeTab === 'tienda'
+              ? 'bg-neutral-900 text-white shadow-xs'
+              : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+          }`}
+        >
+          <Sliders className="w-4 h-4 text-emerald-400" />
+          <span>Rubro & Datos de Tienda</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('usuarios')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+            activeTab === 'usuarios'
+              ? 'bg-neutral-900 text-white shadow-xs'
+              : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+          }`}
+        >
+          <Users className="w-4 h-4 text-emerald-400" />
+          <span>Usuarios & Licencia (Staff)</span>
+        </button>
+      </div>
+
+      {/* RENDER USER MANAGEMENT TAB */}
+      {activeTab === 'usuarios' && <UserManagementSection />}
+
+      {/* RENDER TIENDA & RUBRO TAB */}
+      {activeTab === 'tienda' && (
+        <>
+          {/* Grid of Business Sectors */}
+          <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wide">
@@ -383,6 +421,8 @@ export const ConfiguracionModule: React.FC = () => {
           </button>
         </div>
       </div>
+      </>
+      )}
 
       {/* Admin Password Reset Modal */}
       {showResetModal && (
