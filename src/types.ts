@@ -123,6 +123,53 @@ export interface Sale {
   customerName?: string;
 }
 
+export interface CashDenominationCount {
+  bills200?: number;
+  bills100?: number;
+  bills50?: number;
+  bills20?: number;
+  bills10?: number;
+  coins5?: number;
+  coins2?: number;
+  coins1?: number;
+  coins050?: number;
+  coins020?: number;
+  coins010?: number;
+}
+
+export interface ShiftCashMovement {
+  id: string;
+  shiftId: string;
+  type: 'inflow' | 'outflow'; // entrada (ingreso extra) o salida (gasto de caja / remesa)
+  amount: number;
+  reason: string;
+  category: 'gasto_menor' | 'pago_proveedor' | 'retiro_seguridad' | 'ajuste_sencillo' | 'otro';
+  timestamp: string;
+  userName: string;
+}
+
+export interface BlindAuditRecord {
+  id: string;
+  shiftId: string;
+  timestamp: string;
+  auditType: 'surprise' | 'close'; // Arqueo Sorpresa o Arqueo de Cierre
+  cashierId: string;
+  cashierName: string;
+  supervisorName?: string;
+  denominations: CashDenominationCount;
+  declaredCash: number;
+  declaredCardVouchers?: number;
+  declaredCardCount?: number;
+  declaredWalletAmount?: number;
+  declaredWalletCount?: number;
+  expectedCash: number;
+  difference: number; // declaredCash - expectedCash
+  auditResult: 'balanced' | 'surplus' | 'shortage';
+  discrepancyReason?: string;
+  supervisorApproved?: boolean;
+  notes?: string;
+}
+
 export interface CashShift {
   id: string;
   shiftNumber: string; // e.g. "TUR-001"
@@ -134,8 +181,21 @@ export interface CashShift {
   status: 'open' | 'closed';
   notes?: string;
   finalCashCounted?: number; // Efectivo real contado al cierre
-  finalCashExpected?: number; // Fondo inicial + ventas en efectivo
+  finalCashExpected?: number; // Fondo inicial + ventas en efectivo + entradas - salidas
   difference?: number; // counted - expected
+  // Enhanced Blind Audit & Zero-Loss Tracking
+  isBlindAudit?: boolean;
+  denominations?: CashDenominationCount;
+  declaredCardVouchers?: number;
+  declaredCardCount?: number;
+  declaredWalletAmount?: number;
+  declaredWalletCount?: number;
+  auditResult?: 'balanced' | 'surplus' | 'shortage';
+  discrepancyReason?: string;
+  supervisorName?: string;
+  supervisorApproved?: boolean;
+  movements?: ShiftCashMovement[];
+  audits?: BlindAuditRecord[];
 }
 
 export interface Supplier {

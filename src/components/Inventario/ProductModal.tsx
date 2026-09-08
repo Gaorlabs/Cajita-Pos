@@ -26,7 +26,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     product?.sku || (productType === 'combo' ? `PACK-${Math.floor(100 + Math.random() * 900)}` : `SKU-${Math.floor(1000 + Math.random() * 9000)}`)
   );
   const [name, setName] = useState(product?.name || '');
-  const [categoryId, setCategoryId] = useState(product?.categoryId || categories[0]?.id || '');
+  const [categoryId, setCategoryId] = useState(product?.categoryId || categories?.[0]?.id || '');
   const [purchasePrice, setPurchasePrice] = useState<number | ''>(product?.purchasePrice ?? '');
   const [salePrice, setSalePrice] = useState<number | ''>(product?.salePrice ?? '');
   const [stock, setStock] = useState<number | ''>(product?.stock ?? 10);

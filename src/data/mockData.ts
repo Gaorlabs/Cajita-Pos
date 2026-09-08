@@ -26,7 +26,7 @@ export const INITIAL_USERS: User[] = [
     username: 'root',
     name: 'Super Root (Dueño SaaS)',
     role: 'super_root',
-    pin: '9999',
+    pin: '1982',
     phone: '999 888 777',
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
     status: 'active',

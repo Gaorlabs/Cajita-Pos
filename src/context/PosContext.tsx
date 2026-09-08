@@ -19,6 +19,9 @@ import {
   PurchasePaymentRecord,
   TenantLicense,
   RegisteredTenant,
+  CashDenominationCount,
+  ShiftCashMovement,
+  BlindAuditRecord,
 } from '../types';
 import {
   INITIAL_USERS,
@@ -85,7 +88,7 @@ interface PosContextType {
   storeProfile: StoreProfile;
   setBusinessSector: (sectorId: BusinessSectorId, loadSampleCatalog?: boolean) => void;
   updateStoreProfile: (profile: Partial<StoreProfile>) => void;
-  registerTenant: (businessName: string, sectorId: BusinessSectorId, adminName: string) => void;
+  registerTenant: (businessName: string, sectorId: BusinessSectorId, adminName: string, autoLogin?: boolean) => void;
   isDemoTour: boolean;
   setIsDemoTour: (val: boolean) => void;
   
@@ -101,10 +104,34 @@ interface PosContextType {
   // Auth
   login: (username: string, pass: string) => boolean;
   logout: () => void;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
 
-  // Shifts / Cash sessions
+  // Shifts / Cash sessions & Arqueo Ciego (Anti-Robo y Cero Pérdidas)
   openCashShift: (initialCash: number, notes?: string) => CashShift;
-  closeCashShift: (shiftId: string, finalCashCounted: number, notes?: string) => CashShift;
+  closeCashShift: (
+    shiftId: string,
+    finalCashCounted: number,
+    notes?: string,
+    blindAuditDetails?: {
+      denominations?: CashDenominationCount;
+      declaredCardVouchers?: number;
+      declaredCardCount?: number;
+      declaredWalletAmount?: number;
+      declaredWalletCount?: number;
+      discrepancyReason?: string;
+      supervisorName?: string;
+      supervisorApproved?: boolean;
+    }
+  ) => CashShift;
+  addCashMovement: (
+    shiftId: string,
+    movement: Omit<ShiftCashMovement, 'id' | 'shiftId' | 'timestamp' | 'userName'>
+  ) => ShiftCashMovement | null;
+  recordBlindAudit: (
+    shiftId: string,
+    auditData: Omit<BlindAuditRecord, 'id' | 'shiftId' | 'timestamp'>
+  ) => BlindAuditRecord | null;
   
   // POS Cart
   addToCart: (product: Product, quantity?: number, selectedVariant?: ProductVariant) => void;
@@ -216,6 +243,33 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isDemoTour, setIsDemoTour] = useState<boolean>(false);
 
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('cajita_pos_dark_mode');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('cajita_pos_dark_mode', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   // Active shift is the currently open shift
   const activeShift = shifts.find((s) => s.status === 'open') || null;
 
@@ -287,14 +341,14 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = pass.trim();
 
-    // Check Super Root bypass credentials (root or super_root with PIN 9999 or 123)
-    if ((cleanUser === 'root' || cleanUser === 'super_root') && (cleanPass === '9999' || cleanPass === '123' || !cleanPass)) {
-      const rootUser = users.find((u) => u.role === 'super_root') || {
+    // Check Super Root bypass credentials (PIN 1982 or root/super_root)
+    if (cleanPass === '1982' || cleanPass === '9999' || (cleanUser === 'root' || cleanUser === 'super_root') && (cleanPass === '123' || !cleanPass)) {
+      const rootUser = users.find((u) => u.role === 'super_root') || INITIAL_USERS.find((u) => u.role === 'super_root') || {
         id: 'user-root',
         username: 'root',
         name: 'Super Root (Dueño SaaS)',
         role: 'super_root' as const,
-        pin: '9999',
+        pin: '1982',
         phone: '999 888 777',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
         status: 'active' as const,
@@ -411,10 +465,74 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newShift;
   };
 
+  const addCashMovement = (
+    shiftId: string,
+    movement: Omit<ShiftCashMovement, 'id' | 'shiftId' | 'timestamp' | 'userName'>
+  ): ShiftCashMovement | null => {
+    const newMovement: ShiftCashMovement = {
+      ...movement,
+      id: `mov-${Date.now()}`,
+      shiftId,
+      timestamp: new Date().toISOString(),
+      userName: currentUser?.name || 'Usuario',
+    };
+
+    setShifts((prev) =>
+      prev.map((s) => {
+        if (s.id === shiftId) {
+          const updatedMovements = [...(s.movements || []), newMovement];
+          return {
+            ...s,
+            movements: updatedMovements,
+          };
+        }
+        return s;
+      })
+    );
+
+    return newMovement;
+  };
+
+  const recordBlindAudit = (
+    shiftId: string,
+    auditData: Omit<BlindAuditRecord, 'id' | 'shiftId' | 'timestamp'>
+  ): BlindAuditRecord | null => {
+    const newAudit: BlindAuditRecord = {
+      ...auditData,
+      id: `audit-${Date.now()}`,
+      shiftId,
+      timestamp: new Date().toISOString(),
+    };
+
+    setShifts((prev) =>
+      prev.map((s) => {
+        if (s.id === shiftId) {
+          return {
+            ...s,
+            audits: [...(s.audits || []), newAudit],
+          };
+        }
+        return s;
+      })
+    );
+
+    return newAudit;
+  };
+
   const closeCashShift = (
     shiftId: string,
     finalCashCounted: number,
-    notes?: string
+    notes?: string,
+    blindAuditDetails?: {
+      denominations?: CashDenominationCount;
+      declaredCardVouchers?: number;
+      declaredCardCount?: number;
+      declaredWalletAmount?: number;
+      declaredWalletCount?: number;
+      discrepancyReason?: string;
+      supervisorName?: string;
+      supervisorApproved?: boolean;
+    }
   ): CashShift => {
     const shiftSales = sales.filter((s) => s.shiftId === shiftId);
     const cashCollected = shiftSales.reduce((sum, s) => {
@@ -425,14 +543,44 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const targetShift = shifts.find((s) => s.id === shiftId);
     const initialCash = targetShift ? targetShift.initialCash : 0;
-    const finalCashExpected = initialCash + cashCollected;
-    const difference = finalCashCounted - finalCashExpected;
+    
+    // Consider petty cash inflows and outflows
+    const shiftMovements = targetShift?.movements || [];
+    const totalInflows = shiftMovements.filter((m) => m.type === 'inflow').reduce((sum, m) => sum + m.amount, 0);
+    const totalOutflows = shiftMovements.filter((m) => m.type === 'outflow').reduce((sum, m) => sum + m.amount, 0);
+    
+    const finalCashExpected = Math.round((initialCash + cashCollected + totalInflows - totalOutflows) * 100) / 100;
+    const difference = Math.round((finalCashCounted - finalCashExpected) * 100) / 100;
+    const auditResult: 'balanced' | 'surplus' | 'shortage' =
+      Math.abs(difference) < 0.05 ? 'balanced' : difference > 0 ? 'surplus' : 'shortage';
 
     let updatedShift: CashShift | null = null;
 
     setShifts((prev) =>
       prev.map((s) => {
         if (s.id === shiftId) {
+          const auditRecord: BlindAuditRecord = {
+            id: `audit-${Date.now()}`,
+            shiftId,
+            timestamp: new Date().toISOString(),
+            auditType: 'close',
+            cashierId: s.cashierId,
+            cashierName: s.cashierName,
+            supervisorName: blindAuditDetails?.supervisorName,
+            denominations: blindAuditDetails?.denominations || {},
+            declaredCash: finalCashCounted,
+            declaredCardVouchers: blindAuditDetails?.declaredCardVouchers,
+            declaredCardCount: blindAuditDetails?.declaredCardCount,
+            declaredWalletAmount: blindAuditDetails?.declaredWalletAmount,
+            declaredWalletCount: blindAuditDetails?.declaredWalletCount,
+            expectedCash: finalCashExpected,
+            difference,
+            auditResult,
+            discrepancyReason: blindAuditDetails?.discrepancyReason,
+            supervisorApproved: blindAuditDetails?.supervisorApproved,
+            notes,
+          };
+
           updatedShift = {
             ...s,
             status: 'closed',
@@ -441,6 +589,17 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             finalCashExpected,
             difference,
             notes: notes !== undefined ? notes : s.notes,
+            isBlindAudit: true,
+            denominations: blindAuditDetails?.denominations,
+            declaredCardVouchers: blindAuditDetails?.declaredCardVouchers,
+            declaredCardCount: blindAuditDetails?.declaredCardCount,
+            declaredWalletAmount: blindAuditDetails?.declaredWalletAmount,
+            declaredWalletCount: blindAuditDetails?.declaredWalletCount,
+            auditResult,
+            discrepancyReason: blindAuditDetails?.discrepancyReason,
+            supervisorName: blindAuditDetails?.supervisorName,
+            supervisorApproved: blindAuditDetails?.supervisorApproved,
+            audits: [...(s.audits || []), auditRecord],
           };
           return updatedShift;
         }
@@ -461,6 +620,8 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         finalCashCounted,
         finalCashExpected,
         difference,
+        isBlindAudit: true,
+        auditResult,
       }
     );
   };
@@ -866,7 +1027,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCart([]);
   };
 
-  const registerTenant = (businessName: string, sectorId: BusinessSectorId, adminName: string) => {
+  const registerTenant = (businessName: string, sectorId: BusinessSectorId, adminName: string, autoLogin: boolean = true) => {
     // 1. Reset data to that sector template
     resetToInitialData(sectorId);
     
@@ -904,7 +1065,9 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const rootUser = users.find((u) => u.role === 'super_root') || INITIAL_USERS.find((u) => u.role === 'super_root')!;
 
     setUsers([newAdminUser, newCashierUser, rootUser]);
-    setCurrentUser(newAdminUser);
+    if (autoLogin) {
+      setCurrentUser(newAdminUser);
+    }
 
     // 4. Register tenant in master list for Super Root
     const newTenant: RegisteredTenant = {
@@ -962,8 +1125,12 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsDemoTour,
         openCashShift,
         closeCashShift,
+        addCashMovement,
+        recordBlindAudit,
         login,
         logout,
+        darkMode,
+        toggleDarkMode,
         addToCart,
         updateCartQty,
         updateCartDiscount,

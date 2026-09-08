@@ -14,6 +14,11 @@ import {
   CheckCircle2,
   AlertCircle,
   Receipt,
+  ShieldCheck,
+  ShieldAlert,
+  ArrowUpRight,
+  ArrowDownRight,
+  Coins,
 } from 'lucide-react';
 
 interface ShiftSummaryModalProps {
@@ -92,7 +97,14 @@ export const ShiftSummaryModal: React.FC<ShiftSummaryModalProps> = ({
 
   // Drawer cash balance
   const initialCash = shift ? shift.initialCash : 0;
-  const expectedCashInDrawer = initialCash + cashTotal;
+  const shiftMovements = shift?.movements || [];
+  const totalInflows = shiftMovements
+    .filter((m) => m.type === 'inflow')
+    .reduce((sum, m) => sum + m.amount, 0);
+  const totalOutflows = shiftMovements
+    .filter((m) => m.type === 'outflow')
+    .reduce((sum, m) => sum + m.amount, 0);
+  const expectedCashInDrawer = Math.round((initialCash + cashTotal + totalInflows - totalOutflows) * 100) / 100;
 
   const handlePrint = () => {
     window.print();
@@ -276,15 +288,26 @@ export const ShiftSummaryModal: React.FC<ShiftSummaryModalProps> = ({
             </div>
           </div>
 
-          {/* Section 3: Cash Drawer Balance (Arqueo de Efectivo Físico) */}
+          {/* Section 3: Cash Drawer Balance (Arqueo Ciego Anti-Robo de Efectivo Físico) */}
           {shift && (
-            <div className="bg-neutral-900 text-white rounded-xl p-4 border border-neutral-800">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
-                  <Banknote className="w-4 h-4 text-emerald-400" />
-                  Arqueo de Efectivo en Gaveta
-                </span>
-                <span className="text-[11px] text-neutral-400 font-mono">Físico a cuadrar</span>
+            <div className="bg-neutral-900 text-white rounded-2xl p-4 sm:p-5 border border-neutral-800 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30">
+                    <Banknote className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-200">
+                      Acta de Arqueo Ciego de Gaveta
+                    </h4>
+                    <span className="text-[10px] text-neutral-400">Auditoría Anti-Robo & Cero Pérdidas</span>
+                  </div>
+                </div>
+                {shift.isBlindAudit && (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Protocolo Ciego
+                  </span>
+                )}
               </div>
 
               <div className="space-y-2 text-xs divide-y divide-neutral-800 font-mono">
@@ -296,19 +319,31 @@ export const ShiftSummaryModal: React.FC<ShiftSummaryModalProps> = ({
                   <span className="text-neutral-400 font-sans">(+) Ventas Cobradas en Efectivo:</span>
                   <span className="font-bold text-emerald-400">+ S/ {cashTotal.toFixed(2)}</span>
                 </div>
+                {totalInflows > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-neutral-400 font-sans">(+) Entradas / Sencillo en Caja Chica:</span>
+                    <span className="font-bold text-emerald-400">+ S/ {totalInflows.toFixed(2)}</span>
+                  </div>
+                )}
+                {totalOutflows > 0 && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-neutral-400 font-sans">(-) Salidas / Gastos de Caja Chica:</span>
+                    <span className="font-bold text-rose-400">- S/ {totalOutflows.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-1.5 text-sm font-bold bg-neutral-800/60 px-2.5 rounded-lg">
-                  <span className="text-neutral-200 font-sans">(=) Total Efectivo Esperado en Gaveta:</span>
+                  <span className="text-neutral-200 font-sans">(=) Total Efectivo Esperado por Sistema:</span>
                   <span className="text-emerald-400 font-mono text-base">S/ {expectedCashInDrawer.toFixed(2)}</span>
                 </div>
 
                 {shift.status === 'closed' && shift.finalCashCounted !== undefined && (
                   <>
                     <div className="flex justify-between items-center py-1 text-neutral-300">
-                      <span className="font-sans">Efectivo Real Contado al Cierre:</span>
-                      <span className="font-bold">S/ {shift.finalCashCounted.toFixed(2)}</span>
+                      <span className="font-sans">Efectivo Físico Declarado por Cajero:</span>
+                      <span className="font-bold text-white text-sm">S/ {shift.finalCashCounted.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center py-1 text-sm font-bold">
-                      <span className="font-sans">Diferencia de Caja:</span>
+                    <div className="flex justify-between items-center py-1.5 text-sm font-black">
+                      <span className="font-sans">Resultado del Cuadre:</span>
                       <span
                         className={
                           (shift.difference || 0) === 0
@@ -319,13 +354,57 @@ export const ShiftSummaryModal: React.FC<ShiftSummaryModalProps> = ({
                         }
                       >
                         {(shift.difference || 0) === 0
-                          ? 'S/ 0.00 (Cuadre Exacto)'
-                          : `${(shift.difference || 0) > 0 ? '+ S/' : '- S/'} ${Math.abs(shift.difference || 0).toFixed(2)} (${(shift.difference || 0) > 0 ? 'Sobrante' : 'Faltante'})`}
+                          ? 'S/ 0.00 (Cuadre Exacto - Cero Pérdidas)'
+                          : `${(shift.difference || 0) > 0 ? '+ S/' : '- S/'} ${Math.abs(shift.difference || 0).toFixed(2)} (${(shift.difference || 0) > 0 ? 'Sobrante en Custodia' : 'Faltante en Caja'})`}
                       </span>
                     </div>
+                    {shift.discrepancyReason && (
+                      <div className="pt-2 text-[11px] text-neutral-300 font-sans bg-neutral-800/40 p-2.5 rounded-lg">
+                        <strong className="text-neutral-200 block mb-0.5">Justificación de Auditoría:</strong>
+                        <span>{shift.discrepancyReason}</span>
+                        {shift.supervisorName && (
+                          <span className="block mt-1 text-[10px] text-neutral-400">
+                            Validado por supervisor: <strong>{shift.supervisorName}</strong>
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
+
+              {/* Movements history if any */}
+              {shiftMovements.length > 0 && (
+                <div className="pt-2 border-t border-neutral-800 space-y-1.5">
+                  <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
+                    Movimientos de Caja Chica Registrados ({shiftMovements.length})
+                  </span>
+                  <div className="space-y-1">
+                    {shiftMovements.map((m) => (
+                      <div
+                        key={m.id}
+                        className="flex items-center justify-between text-[11px] py-1 px-2 rounded-lg bg-neutral-800/50"
+                      >
+                        <span className="text-neutral-300 flex items-center gap-1.5 truncate">
+                          {m.type === 'inflow' ? (
+                            <ArrowDownRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          ) : (
+                            <ArrowUpRight className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                          )}
+                          <span className="truncate">{m.reason}</span>
+                        </span>
+                        <span
+                          className={`font-mono font-bold shrink-0 ${
+                            m.type === 'inflow' ? 'text-emerald-400' : 'text-rose-400'
+                          }`}
+                        >
+                          {m.type === 'inflow' ? '+' : '-'} S/ {m.amount.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

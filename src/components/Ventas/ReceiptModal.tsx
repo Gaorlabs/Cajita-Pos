@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sale } from '../../types';
 import { usePos } from '../../context/PosContext';
-import { CheckCircle2, Printer, X } from 'lucide-react';
+import { CheckCircle2, Printer, X, MessageSquare } from 'lucide-react';
 import { CajitaLogo } from '../CajitaLogo';
+import { WhatsappIntegrationModal } from '../Whatsapp/WhatsappIntegrationModal';
 
 interface ReceiptModalProps {
   sale: Sale;
@@ -11,6 +12,7 @@ interface ReceiptModalProps {
 
 export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => {
   const { storeProfile } = usePos();
+  const [showWhatsappModal, setShowWhatsappModal] = useState(false);
 
   const handlePrint = () => {
     window.print();
@@ -165,22 +167,35 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ sale, onClose }) => 
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-neutral-100 border-t border-neutral-300 flex items-center justify-between gap-3 print:hidden">
-          <button
-            onClick={handlePrint}
-            className="flex-1 py-2.5 px-4 bg-white hover:bg-neutral-50 text-black border border-neutral-300 hover:border-[#2E7D5B] rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-          >
-            <Printer className="w-4 h-4 text-[#2E7D5B]" />
-            <span>Imprimir Ticket</span>
-          </button>
+        <div className="p-4 bg-neutral-100 border-t border-neutral-300 flex flex-col gap-2 print:hidden">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="flex-1 py-2.5 px-3 bg-white hover:bg-neutral-50 text-black border border-neutral-300 hover:border-[#2E7D5B] rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Printer className="w-4 h-4 text-[#2E7D5B]" />
+              <span>Imprimir</span>
+            </button>
+            <button
+              onClick={() => setShowWhatsappModal(true)}
+              className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>Enviar WhatsApp</span>
+            </button>
+          </div>
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 px-4 bg-[#2E7D5B] hover:bg-[#235F45] text-[#FAF6F0] rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+            className="w-full py-2.5 px-4 bg-[#2E7D5B] hover:bg-[#235F45] text-[#FAF6F0] rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
           >
             <span>Nueva Venta</span>
           </button>
         </div>
       </div>
+
+      {showWhatsappModal && (
+        <WhatsappIntegrationModal sale={sale} onClose={() => setShowWhatsappModal(false)} />
+      )}
     </div>
   );
 };

@@ -47,7 +47,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({ onClose }) =
   // Filter out pure combos from raw purchase restocking
   const baseProducts = products.filter((p) => p.type !== 'combo');
 
-  const [supplierId, setSupplierId] = useState<string>(suppliers[0]?.id || '');
+  const [supplierId, setSupplierId] = useState<string>(suppliers?.[0]?.id || '');
   
   // Document details from supplier
   const [documentType, setDocumentType] = useState<PurchaseDocType>('factura');

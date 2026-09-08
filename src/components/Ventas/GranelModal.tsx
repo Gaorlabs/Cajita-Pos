@@ -210,7 +210,7 @@ export const GranelModal: React.FC<GranelModalProps> = ({
                   Importe que pide el cliente (S/):
                 </label>
                 <span className="text-[11px] text-neutral-500 italic">
-                  Ej: "Dame 3 soles de {product.name.split(' ')[0]}"
+                  Ej: "Dame 3 soles de {product?.name?.split(' ')[0] || ''}"
                 </span>
               </div>
 

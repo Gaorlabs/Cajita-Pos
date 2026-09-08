@@ -84,7 +84,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({ category, onSave, 
                   >
                     <CategoryIcon name={item.id} className={`w-5 h-5 ${isSelected ? 'text-emerald-400' : ''}`} />
                     <span className="text-[9px] truncate w-full text-center leading-tight">
-                      {item.name.split(' ')[0]}
+                      {item?.name?.split(' ')[0] || ''}
                     </span>
                   </button>
                 );

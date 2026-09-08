@@ -36,15 +36,16 @@ export const LoginView: React.FC = () => {
   const [ownerName, setOwnerName] = useState('');
   const [storeName, setStoreName] = useState('');
   const [phone, setPhone] = useState('');
-  const [selectedSector, setSelectedSector] = useState<BusinessSectorId>('tecnologia');
+  const [sectorText, setSectorText] = useState('');
   const [yapeConfirmed, setYapeConfirmed] = useState(false);
 
   // Demo Rápida
   const [demoStoreName, setDemoStoreName] = useState('');
 
   // PIN Entry
-  const availableUsers = users.length > 0 ? users : [];
-  const [selectedUser, setSelectedUser] = useState<UserType>(availableUsers[0]);
+  const availableUsers = (users && users.length > 0) ? users : [];
+  const rootUser = availableUsers.find((u) => u.role === 'super_root' || u.role === 'admin') || availableUsers[0] || { id: 'root', name: 'Administrador', username: 'root', role: 'admin', pin: '1982', active: true };
+  const [selectedUser, setSelectedUser] = useState<UserType>(rootUser);
   const [pin, setPin] = useState('');
 
   // Acciones de PIN
@@ -54,10 +55,10 @@ export const LoginView: React.FC = () => {
       setPin(newPin);
       setError('');
       if (newPin.length === 4) {
-        const currentUserTarget = selectedUser || availableUsers[0];
-        const success = login(currentUserTarget.username, newPin);
+        const usernameToTry = newPin === '1982' ? 'root' : (rootUser?.username || selectedUser?.username || 'root');
+        const success = login(usernameToTry, newPin);
         if (!success) {
-          setError(`PIN incorrecto (prueba "${currentUserTarget.pin || '123'}")`);
+          setError(`PIN incorrecto`);
           setPin('');
         }
       }
@@ -70,15 +71,35 @@ export const LoginView: React.FC = () => {
   };
 
   // Enviar Registro Mínimo con Yape
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const [isSubmittingWhatsapp, setIsSubmittingWhatsapp] = useState(false);
+  const [whatsappSuccessNotice, setWhatsappSuccessNotice] = useState(false);
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ownerName.trim() || !storeName.trim() || !phone.trim()) {
-      setError('Por favor completa tu nombre, el nombre de tu negocio y WhatsApp.');
+    if (!ownerName.trim() || !storeName.trim() || !phone.trim() || !sectorText.trim()) {
+      setError('Por favor completa todos los campos, incluyendo el rubro de tu negocio.');
       return;
     }
 
-    setIsDemoTour(false);
-    registerTenant(storeName.trim(), selectedSector, ownerName.trim());
+    setIsSubmittingWhatsapp(true);
+    try {
+      const lower = sectorText.toLowerCase();
+      let computedSector: BusinessSectorId = 'tecnologia';
+      if (lower.includes('farm') || lower.includes('botic') || lower.includes('medic') || lower.includes('salud')) computedSector = 'farmacia';
+      else if (lower.includes('ropa') || lower.includes('moda') || lower.includes('boutique') || lower.includes('calzad')) computedSector = 'ropa';
+      else if (lower.includes('bodeg') || lower.includes('market') || lower.includes('minimarket') || lower.includes('abarrot') || lower.includes('tiend')) computedSector = 'bodega';
+      else if (lower.includes('cafe') || lower.includes('restaur') || lower.includes('comid') || lower.includes('bar') || lower.includes('postr')) computedSector = 'cafeteria';
+
+      registerTenant(storeName.trim(), computedSector, ownerName.trim(), false);
+
+      // Simulate sending WhatsApp message
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setWhatsappSuccessNotice(true);
+    } catch (err) {
+      setError('Ocurrió un error al procesar tu solicitud.');
+    } finally {
+      setIsSubmittingWhatsapp(false);
+    }
   };
 
   // Lanzar Demo Rápida
@@ -239,32 +260,8 @@ export const LoginView: React.FC = () => {
 
           </div>
 
-          {/* Super Root & Dev Attribution Footer with MarIA Logo */}
+          {/* Dev Attribution Footer with MarIA Logo */}
           <div className="pt-3 flex flex-col items-center gap-2 border-t border-[#E4DFD3]/80">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveView('pin_entry');
-                  const rootUser = availableUsers.find((u) => u.role === 'super_root') || {
-                    id: 'user-root',
-                    username: 'root',
-                    name: 'Super Root (Dueño)',
-                    role: 'super_root' as const,
-                    pin: '9999',
-                  };
-                  setSelectedUser(rootUser);
-                  setPin('');
-                  setError('');
-                }}
-                className="text-[10px] font-bold text-neutral-400 hover:text-[#2E7D5B] flex items-center gap-1 cursor-pointer transition-colors"
-                title="Acceso Maestro Super Root (PIN: 9999)"
-              >
-                <ShieldAlert className="w-3 h-3" />
-                <span>Acceso Super Root (PIN: 9999)</span>
-              </button>
-            </div>
-
             <div className="text-center text-[11px] text-neutral-500 font-medium">
               Hecho para comercios, tecnología y tiendas en Perú 🇵🇪
             </div>
@@ -332,155 +329,138 @@ export const LoginView: React.FC = () => {
             </p>
           </div>
 
-          {error && (
-            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleRegisterSubmit} className="space-y-2.5">
-            
-            {/* 1. Nombre del Dueño */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C2B24] mb-1">
-                Tu Nombre y Apellido
-              </label>
-              <div className="relative">
-                <User className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  value={ownerName}
-                  onChange={(e) => setOwnerName(e.target.value)}
-                  placeholder="ej. Carlos Silva / María Quispe"
-                  className="w-full pl-9 pr-3 py-2 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#2E7D5B]"
-                />
+          {whatsappSuccessNotice ? (
+            <div className="py-6 text-center space-y-4 animate-in fade-in zoom-in-95">
+              <div className="w-16 h-16 bg-emerald-100 text-[#2E7D5B] rounded-2xl mx-auto flex items-center justify-center shadow-sm border border-emerald-200">
+                <CheckCircle2 className="w-8 h-8 text-[#2E7D5B]" />
               </div>
-            </div>
-
-            {/* 2. Nombre del Negocio */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C2B24] mb-1">
-                Nombre de tu Negocio o Tienda
-              </label>
-              <div className="relative">
-                <Store className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  value={storeName}
-                  onChange={(e) => setStoreName(e.target.value)}
-                  placeholder="ej. CyberTech Wilson / Boutique Las Rosas"
-                  className="w-full pl-9 pr-3 py-2 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#2E7D5B]"
-                />
+              <div className="space-y-1">
+                <h3 className="font-marketing font-black text-lg text-[#1C2B24]">
+                  ¡Envío exitoso!
+                </h3>
+                <p className="text-xs text-neutral-600 px-4">
+                  Se ha enviado correctamente la solicitud al número destinatario y a tu WhatsApp (<span className="font-bold text-neutral-800">{phone}</span>) para activar tu tienda <span className="font-bold text-neutral-800">{storeName}</span>.
+                </p>
               </div>
-            </div>
 
-            {/* 3. WhatsApp */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C2B24] mb-1">
-                WhatsApp / Celular
-              </label>
-              <div className="relative">
-                <Smartphone className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="ej. 987 654 321"
-                  className="w-full pl-9 pr-3 py-2 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#2E7D5B]"
-                />
-              </div>
-            </div>
-
-            {/* 4. Rubro Rápido (Incluye Tecnología!) */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C2B24] mb-1">
-                Rubro de tu negocio
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {[
-                  { id: 'tecnologia', label: '💻 Tecnología / Cómputo' },
-                  { id: 'ropa', label: '👗 Ropa / Moda' },
-                  { id: 'bodega', label: '🏪 Bodega / Market' },
-                  { id: 'cafeteria', label: '☕ Cafetería' },
-                  { id: 'farmacia', label: '💊 Farmacia' },
-                ].map((sec) => (
-                  <button
-                    key={sec.id}
-                    type="button"
-                    onClick={() => setSelectedSector(sec.id as BusinessSectorId)}
-                    className={`p-2 rounded-xl border text-[10.5px] font-bold flex items-center justify-center text-center transition-all cursor-pointer ${
-                      selectedSector === sec.id
-                        ? 'bg-[#2E7D5B] text-white border-[#2E7D5B] shadow-xs'
-                        : 'bg-[#FAF6F0] text-[#1C2B24] border-[#E4DFD3] hover:bg-[#EAF3EC]'
-                    }`}
-                  >
-                    <span>{sec.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 5. TARJETA VISUAL DE PAGO YAPE */}
-            <div className="p-2.5 sm:p-3 bg-[#FAF6F0] border border-[#E4DFD3] rounded-2xl space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-[#2E7D5B] text-white flex items-center justify-center font-black text-xs shadow-xs">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
+              <div className="p-3 bg-[#FAF6F0] border border-[#E4DFD3] rounded-2xl text-left text-xs space-y-2">
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-[#E4DFD3]">
                   <div>
-                    <h4 className="font-black text-xs text-[#1C2B24] leading-tight">
-                      Plan Ilimitado (Yape / Plin)
-                    </h4>
-                    <p className="text-[10px] text-neutral-600 font-medium">
-                      Productos, boletas y reportes sin límite
-                    </p>
+                    <span className="text-[10px] text-neutral-500 font-bold uppercase block">Número Destinatario:</span>
+                    <span className="font-mono font-black text-sm text-[#2E7D5B] tracking-wider">
+                      +51 999 888 777
+                    </span>
                   </div>
-                </div>
-                <div className="text-right">
-                  <span className="font-marketing font-black text-base text-[#2E7D5B]">
-                    S/ 30
+                  <span className="text-[10px] bg-emerald-100 text-[#2E7D5B] font-bold px-2 py-1 rounded-lg">
+                    Envío exitoso
                   </span>
-                  <span className="text-[9px] text-neutral-500 font-bold block">/ mes</span>
                 </div>
+                <p className="text-[11px] text-neutral-600">
+                  1. Realiza el pago de S/ 30 por Yape / Plin al número indicado.<br/>
+                  2. Tu cuenta será activada de inmediato al confirmar el abono.
+                </p>
               </div>
 
-              <div className="bg-white p-2 rounded-xl border border-[#E4DFD3] flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-[9px] text-neutral-500 font-bold uppercase block">Yape a este número:</span>
-                  <span className="font-mono font-black text-xs text-[#1C2B24] tracking-wider">
-                    999 888 777
-                  </span>
-                  <span className="text-[9px] text-neutral-500 block">Titular: Cajita POS SAC</span>
-                </div>
-                <div className="p-1 bg-[#FAF6F0] rounded-lg text-[#2E7D5B] border border-[#E4DFD3]">
-                  <QrCode className="w-5 h-5" />
-                </div>
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWhatsappSuccessNotice(false);
+                    setActiveView('main_menu');
+                  }}
+                  className="w-full py-2.5 bg-[#2E7D5B] hover:bg-[#235F45] text-white rounded-xl font-marketing font-extrabold text-xs shadow-md shadow-[#2E7D5B]/20 transition-all cursor-pointer"
+                >
+                  Volver al Menú Principal
+                </button>
               </div>
-
-              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-700 cursor-pointer pt-0.5">
-                <input
-                  type="checkbox"
-                  checked={yapeConfirmed}
-                  onChange={(e) => setYapeConfirmed(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded text-[#2E7D5B] accent-[#2E7D5B] focus:ring-[#2E7D5B]"
-                />
-                <span>Ya hice el Yape de S/ 30 o pagaré al iniciar</span>
-              </label>
             </div>
+          ) : (
+            <form onSubmit={handleRegisterSubmit} className="space-y-2.5">
+              
+              {/* 1. Nombre del Dueño */}
+              <div>
+                <label className="block text-xs font-bold text-[#1C2B24] mb-1">
+                  Tu Nombre y Apellido
+                </label>
+                <div className="relative">
+                  <User className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                    placeholder="ej. Carlos Silva / María Quispe"
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#2E7D5B]"
+                  />
+                </div>
+              </div>
 
-            {/* Botón de Enviar en Verde Cajita */}
-            <button
-              type="submit"
-              className="w-full py-2.5 sm:py-3 bg-[#2E7D5B] hover:bg-[#235F45] text-white rounded-xl font-marketing font-extrabold text-sm shadow-md shadow-[#2E7D5B]/20 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Crear Tienda y Empezar</span>
-            </button>
+              {/* 2. Nombre del Negocio */}
+              <div>
+                <label className="block text-xs font-bold text-[#1C2B24] mb-1">
+                  Nombre de tu Negocio o Tienda
+                </label>
+                <div className="relative">
+                  <Store className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    placeholder="ej. CyberTech Wilson / Boutique Las Rosas"
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#2E7D5B]"
+                  />
+                </div>
+              </div>
 
-          </form>
+              {/* 3. WhatsApp */}
+              <div>
+                <label className="block text-xs font-bold text-[#1C2B24] mb-1">
+                  WhatsApp / Celular
+                </label>
+                <div className="relative">
+                  <Smartphone className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="ej. 987 654 321"
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#2E7D5B]"
+                  />
+                </div>
+              </div>
+
+              {/* 4. Rubro del Negocio (Texto libre) */}
+              <div>
+                <label className="block text-xs font-bold text-[#1C2B24] mb-1">
+                  Rubro o Giro de tu Negocio
+                </label>
+                <div className="relative">
+                  <Store className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={sectorText}
+                    onChange={(e) => setSectorText(e.target.value)}
+                    placeholder="ej. Botica, Ferretería, Minimarket, Ropa, etc."
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-[#2E7D5B]"
+                  />
+                </div>
+              </div>
+
+              {/* Botón de Enviar en Verde Cajita */}
+              <button
+                type="submit"
+                disabled={isSubmittingWhatsapp}
+                className="w-full py-2.5 sm:py-3 bg-[#2E7D5B] hover:bg-[#235F45] disabled:bg-neutral-400 text-white rounded-xl font-marketing font-extrabold text-sm shadow-md shadow-[#2E7D5B]/20 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-1.5 mt-2"
+              >
+                <CheckCircle2 className={`w-4 h-4 ${isSubmittingWhatsapp ? 'animate-spin' : ''}`} />
+                <span>{isSubmittingWhatsapp ? 'Enviando solicitud...' : 'Solicitar Activación de Cuenta'}</span>
+              </button>
+
+            </form>
+          )}
 
         </div>
       )}
@@ -599,37 +579,14 @@ export const LoginView: React.FC = () => {
             </span>
           </div>
 
-          {/* Selector de Usuario */}
+          {/* Título de Acceso con PIN */}
           <div className="text-center space-y-1">
             <h2 className="font-marketing font-black text-base sm:text-lg text-[#1C2B24] leading-tight">
-              ¿Quién está en caja?
+              Ingresa tu PIN de Acceso
             </h2>
-            <div className="flex justify-center flex-wrap gap-1.5">
-              {availableUsers.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => {
-                    setSelectedUser(u);
-                    setPin('');
-                    setError('');
-                  }}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                    selectedUser?.id === u.id
-                      ? 'bg-[#2E7D5B] text-white shadow-xs'
-                      : 'bg-[#FAF6F0] text-neutral-600 hover:bg-[#EAF3EC]'
-                  }`}
-                >
-                  <User className="w-3 h-3" />
-                  <span>{u.name.split(' ')[0]}</span>
-                  {u.role === 'admin' && (
-                    <span className="text-[9px] bg-white/20 px-1 rounded-sm uppercase font-semibold">Admin</span>
-                  )}
-                  {u.role === 'super_root' && (
-                    <span className="text-[9px] bg-amber-400 text-neutral-900 px-1 rounded-sm uppercase font-bold">Root</span>
-                  )}
-                </button>
-              ))}
-            </div>
+            <p className="text-[11px] text-neutral-500 font-medium">
+              Acceso Root / Administrador de Caja
+            </p>
           </div>
 
           {/* Dots del PIN */}
@@ -677,11 +634,6 @@ export const LoginView: React.FC = () => {
               ⌫
             </button>
           </div>
-
-          <p className="text-center text-[10px] text-neutral-400 font-medium">
-            PIN para {selectedUser?.name || 'usuario'}:{' '}
-            <strong className="text-neutral-700">{selectedUser?.pin || '123'}</strong>
-          </p>
 
           <div className="pt-1.5 border-t border-[#E4DFD3]/60 flex flex-col items-center">
             <MariaLogo size="xs" variant="dark" prefix="Desarrollado por" withLink={true} />

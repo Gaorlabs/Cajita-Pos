@@ -144,6 +144,16 @@ export const VentasModule: React.FC = () => {
   const [showBarcodeDemo, setShowBarcodeDemo] = useState(false);
   const [scannerFlash, setScannerFlash] = useState(false);
 
+  // Auto-dismiss demo tour popup after 5 seconds
+  useEffect(() => {
+    if (isDemoTour) {
+      const timer = setTimeout(() => {
+        setIsDemoTour(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isDemoTour, setIsDemoTour]);
+
   // Audio feedback for POS scanner beep (Web Audio API native, zero external dependencies)
   const playBeep = () => {
     try {
@@ -484,26 +494,44 @@ export const VentasModule: React.FC = () => {
         </div>
 
         {isDemoTour && (
-          <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 rounded-2xl p-4 relative overflow-hidden shrink-0 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-            <button
-              onClick={() => setIsDemoTour(false)}
-              className="absolute top-3 right-3 p-1 rounded-lg text-emerald-800 hover:bg-emerald-500/10 transition-all cursor-pointer"
-              title="Cerrar Tour"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <div className="flex gap-3">
-              <div className="p-2.5 bg-white rounded-xl shadow-xs border border-emerald-500/10 shrink-0 text-[#2E7D5B] hidden sm:block">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl shadow-2xl border border-emerald-500/30 max-w-md w-full p-6 text-left relative space-y-4 animate-in zoom-in-95 duration-200">
+              <button
+                onClick={() => setIsDemoTour(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-all cursor-pointer"
+                title="Cerrar Pop-up"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-500/20 text-[#2E7D5B] shrink-0">
+                  <Sparkles className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Modo Demostración
+                  </span>
+                  <h3 className="font-marketing font-black text-lg text-neutral-900 mt-1">
+                    ¡Bienvenido, {storeProfile.name}!
+                  </h3>
+                </div>
               </div>
-              <div className="space-y-1 pr-6">
-                <h3 className="font-marketing font-extrabold text-sm text-emerald-950 flex items-center gap-1.5">
-                  <span>🎉 ¡Modo Demo Personalizado de <strong>{storeProfile.name}</strong> activado!</span>
-                </h3>
-                <p className="text-[11px] text-neutral-600 leading-relaxed">
-                  Hemos cargado un catálogo inteligente del rubro <strong>{sectorConfig.shortName}</strong>. 
-                  Prueba a <strong>hacer clic en un producto</strong> para agregarlo al carrito, luego dale al botón <strong>Cobrar</strong> para simular tu primera venta. ¡Siente la rapidez y orden de Cajita POS!
-                </p>
+
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                Hemos cargado un catálogo inteligente para el rubro <strong>{sectorConfig.shortName}</strong>. 
+                Prueba a <strong>hacer clic en un producto</strong> para agregarlo al carrito y dale a <strong>Cobrar</strong> para simular tu primera venta.
+              </p>
+
+              <div className="pt-2 flex items-center justify-between text-[11px] text-neutral-400 border-t border-neutral-100">
+                <span>Cerrando automáticamente en 5s...</span>
+                <button
+                  type="button"
+                  onClick={() => setIsDemoTour(false)}
+                  className="px-4 py-2 bg-[#2E7D5B] hover:bg-[#256348] text-white font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+                >
+                  ¡Entendido, Empezar!
+                </button>
               </div>
             </div>
           </div>
