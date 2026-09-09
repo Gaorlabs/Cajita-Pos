@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="h-16 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 select-none gap-2">
+      <header className="h-16 bg-white dark:bg-[#1C2B24] border-b border-neutral-200 dark:border-[#2E5A44] px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 select-none gap-2">
         {/* Left side: Mobile menu toggle / Rail toggle + Date & Time + Shift Options */}
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 overflow-hidden">
           <button
