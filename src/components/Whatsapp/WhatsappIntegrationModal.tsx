@@ -16,13 +16,13 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
   
   // n8n & Evolution API configuration state (stored in localStorage or state)
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState<string>(
-    localStorage.getItem('n8n_whatsapp_webhook') || 'https://n8n.tu-instancia.com/webhook/enviar-ticket-farmacia'
+    localStorage.getItem('n8n_whatsapp_webhook') || 'https://n8n.tu-instancia.com/webhook/enviar-ticket-cajita'
   );
   const [evolutionApiKey, setEvolutionApiKey] = useState<string>(
-    localStorage.getItem('evolution_api_key') || 'evo-key-xyz-farmacia'
+    localStorage.getItem('evolution_api_key') || 'evo-key-xyz-cajita'
   );
   const [evolutionInstance, setEvolutionInstance] = useState<string>(
-    localStorage.getItem('evolution_instance') || 'FarmaciaPrincipal'
+    localStorage.getItem('evolution_instance') || 'CajitaPOS'
   );
 
   const [phoneNumber, setPhoneNumber] = useState<string>(
@@ -31,8 +31,8 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
   
   const [messageTemplate, setMessageTemplate] = useState<string>(
     sale
-      ? `💊 *${currentTenant?.name || 'Boticas Perú'}* - Comprobante de Venta N° *${sale.ticketNumber}*\n\nHola *${sale.customerName || 'Cliente'}*, gracias por tu compra.\n\n📅 Fecha: ${new Date(sale.date).toLocaleString('es-PE')}\n🧾 Total: *S/ ${sale.total.toFixed(2)}*\nMétodo de Pago: ${sale.payments.map(p => p.method.toUpperCase()).join(', ')}\n\nProductos:\n${sale.items.map(i => `• ${i.quantity}x ${i.productName} (S/ ${(i.price * i.quantity).toFixed(2)})`).join('\n')}\n\n¡Conserva este mensaje como tu comprobante digital! Atendido por: ${sale.cashierName}.\n\nPowered by *MarIA by GaorSystem* 🚀`
-      : `👋 ¡Hola! Te saludamos desde *${currentTenant?.name || 'Boticas Perú'}*. Este es un mensaje de prueba automatizado a través de n8n + Evolution API.`
+      ? `🧾 *${currentTenant?.name || 'Cajita POS'}* - Ticket de Venta N° *${sale.ticketNumber}*\n\nHola *${sale.customerName || 'Cliente'}*, gracias por tu compra.\n\n📅 Fecha: ${new Date(sale.date).toLocaleString('es-PE')}\n🧾 Total: *S/ ${sale.total.toFixed(2)}*\nMétodo de Pago: ${sale.payments.map(p => p.method.toUpperCase()).join(', ')}\n\nProductos:\n${sale.items.map(i => `• ${i.quantity}x ${i.productName} (S/ ${(i.unitPrice * i.quantity).toFixed(2)})`).join('\n')}\n\n¡Conserva este mensaje como tu comprobante digital! Atendido por: ${sale.cashierName}.\n\nPowered by *Cajita POS Perú* 🇵🇪`
+      : `👋 ¡Hola! Te saludamos desde *${currentTenant?.name || 'Cajita POS'}*. Este es un mensaje de prueba automatizado a través de WhatsApp API.`
   );
 
   const [activeTab, setActiveTab] = useState<'send' | 'config' | 'logs'>('send');
@@ -107,7 +107,7 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden my-auto max-h-[95vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden my-auto max-h-[92dvh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="p-4 sm:p-5 bg-neutral-950 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -124,7 +124,7 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
                 </span>
               </div>
               <p className="text-xs text-neutral-400 mt-0.5">
-                Envío automatizado de tickets, comprobantes y alertas de farmacia
+                Envío automatizado de tickets, comprobantes y alertas a clientes
               </p>
             </div>
           </div>
