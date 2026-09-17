@@ -364,22 +364,13 @@ export const Sidebar: React.FC<{
             </div>
 
             {/* Developer Attribution Link with MarIA Logo */}
-            <div className="px-2 pt-2 border-t border-[#235F45]/60 flex flex-col items-center">
+            <div className="px-2 pt-2 border-t border-[#235F45]/40 flex flex-col items-center opacity-85 hover:opacity-100 transition-opacity">
               <MariaLogo
-                size="sm"
+                size="xs"
                 variant="light"
                 prefix="Desarrollado por"
                 withLink={true}
               />
-              <a
-                href="https://maria-vert.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] text-emerald-300 hover:text-white underline decoration-emerald-400/40 hover:decoration-white transition-colors inline-flex items-center gap-1 mt-0.5 group font-semibold"
-              >
-                <span>maria-vert.vercel.app</span>
-                <ExternalLink className="w-2.5 h-2.5 opacity-80 group-hover:opacity-100" />
-              </a>
             </div>
           </>
         )}

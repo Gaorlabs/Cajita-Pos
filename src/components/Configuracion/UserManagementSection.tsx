@@ -211,7 +211,7 @@ export const UserManagementSection: React.FC = () => {
       <div className="p-3.5 bg-[#FAF6F0] border border-[#E4DFD3] rounded-xl flex items-start gap-3 text-xs text-neutral-700">
         <Info className="w-4 h-4 text-[#2E7D5B] shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <p className="font-bold text-[#1C2B24]">Protección de negocio garantizada en tu plan de S/ 30:</p>
+          <p className="font-bold text-[#1C2B24]">Protección de negocio garantizada en tu plan:</p>
           <p className="text-[11px] text-neutral-600 leading-relaxed">
             El perfil <strong>Vendedor (Cajero)</strong> solo puede cobrar en el POS y registrar apertura/cierre de su turno. No tiene acceso a tus costos de compra, stock total, reportes de ganancia ni configuraciones del sistema.
           </p>
@@ -383,9 +383,9 @@ export const UserManagementSection: React.FC = () => {
       </div>
 
       {/* Attribution & Support footer with MarIA logo */}
-      <div className="p-4 rounded-2xl bg-[#FAF6F0] border border-[#E4DFD3] flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="p-3.5 rounded-2xl bg-[#FAF6F0] border border-[#E4DFD3] flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <MariaLogo size="sm" variant="dark" prefix="Desarrollado por" withLink={false} />
+          <MariaLogo size="xs" variant="dark" prefix="Desarrollado por" withLink={false} />
           <div className="text-xs text-neutral-600">
             Plataforma SaaS para comercios impulsada por{' '}
             <a
@@ -606,7 +606,7 @@ export const UserManagementSection: React.FC = () => {
               <div className="p-3 bg-[#FAEEDA] border border-[#EF9F27]/30 rounded-2xl flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-[#B87D0F] shrink-0 mt-0.5" />
                 <div className="text-xs text-[#633806] space-y-1">
-                  <p className="font-bold">Máximo 2 Usuarios en Plan Emprendedor (S/ 30/mes)</p>
+                  <p className="font-bold">Máximo 2 Usuarios en Plan Emprendedor</p>
                   <p className="text-[11px] leading-relaxed">
                     Tu plan actual incluye <strong>1 Administrador</strong> y <strong>1 Vendedor</strong>. Tienes los {license.maxUsers} cupos ocupados.
                   </p>

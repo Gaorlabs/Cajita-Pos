@@ -15,10 +15,7 @@ import {
   ExternalLink,
   ShieldCheck,
   ArrowUpRight,
-  Sun,
-  Moon,
 } from 'lucide-react';
-import { MariaLogo } from './MariaLogo';
 import { OpenShiftModal } from './Ventas/OpenShiftModal';
 import { CloseShiftModal } from './Ventas/CloseShiftModal';
 import { ShiftSummaryModal } from './Ventas/ShiftSummaryModal';
@@ -43,8 +40,6 @@ export const Header: React.FC<HeaderProps> = ({
     setActiveModule,
     sectorConfig,
     logout,
-    darkMode,
-    toggleDarkMode,
   } = usePos();
 
   const [timeStr, setTimeStr] = useState('');
@@ -120,21 +115,21 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="h-16 bg-white dark:bg-[#1C2B24] border-b border-neutral-200 dark:border-[#2E5A44] px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 select-none gap-2">
+      <header className="h-16 bg-white border-b border-[#E4DFD3] px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 select-none gap-2 shadow-2xs">
         {/* Left side: Mobile menu toggle / Rail toggle + Date & Time + Shift Options */}
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 overflow-hidden">
           <button
             onClick={handleMenuButtonClick}
-            className="p-2 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer shrink-0"
+            className="p-2 text-[#1C2B24] hover:bg-[#FAF6F0] rounded-xl transition-colors cursor-pointer shrink-0"
             aria-label="Alternar menú lateral"
             title={isSidebarCollapsed ? "Expandir menú lateral" : "Colapsar menú lateral"}
           >
-            <Menu className="w-5 h-5 text-neutral-800 dark:text-neutral-200" />
+            <Menu className="w-5 h-5 text-[#1C2B24]" />
           </button>
 
           {/* Date & Time */}
-          <div className="hidden xl:flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 text-xs font-normal border-r border-neutral-200 dark:border-neutral-800 pr-3 shrink-0">
-            <Clock className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+          <div className="hidden xl:flex items-center gap-1.5 text-neutral-500 text-xs font-normal border-r border-[#E4DFD3] pr-3 shrink-0">
+            <Clock className="w-3.5 h-3.5 text-neutral-400" />
             <span className="whitespace-nowrap">{timeStr}</span>
           </div>
 
@@ -239,33 +234,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right side: Low Stock Alert, Theme Toggle & User Profile */}
+        {/* Right side: Low Stock Alert & User Profile */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Theme Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleDarkMode}
-            className="p-2 bg-[#FAF6F0] dark:bg-neutral-800 hover:bg-[#EAF3EC] dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:text-[#2E7D5B] border border-[#E4DFD3] dark:border-neutral-700 rounded-xl transition-all cursor-pointer flex items-center justify-center shadow-2xs"
-            title={darkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
-          >
-            {darkMode ? (
-              <Sun className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-neutral-700" />
-            )}
-          </button>
-
           {/* Low Stock Pill - The ONLY solid badge per specification */}
           {lowStockCount > 0 && currentUser?.role === 'admin' && (
             <button
               onClick={handleLowStockClick}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#FAEEDA] dark:bg-amber-950/40 hover:bg-[#F3E2BD] dark:hover:bg-amber-900/50 text-[#633806] dark:text-amber-200 rounded-xl text-xs font-normal transition-colors cursor-pointer border border-[#EF9F27]/30 whitespace-nowrap shrink-0"
+              className="flex items-center gap-2 px-3 py-1.5 bg-[#FAEEDA] hover:bg-[#F3E2BD] text-[#633806] rounded-xl text-xs font-medium transition-colors cursor-pointer border border-[#EF9F27]/30 whitespace-nowrap shrink-0"
               title="Ver productos con bajo stock en inventario"
             >
-              <div className="w-3.5 h-3.5 border border-[#633806] dark:border-amber-300 rounded-xs shrink-0 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 bg-[#633806] dark:bg-amber-300 rounded-xs" />
+              <div className="w-3.5 h-3.5 border border-[#633806] rounded-xs shrink-0 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-[#633806] rounded-xs" />
               </div>
-              <span className="whitespace-nowrap font-normal">
+              <span className="whitespace-nowrap">
                 Stock bajo: <strong className="font-bold">{lowStockCount}</strong>
               </span>
             </button>
@@ -275,7 +256,7 @@ export const Header: React.FC<HeaderProps> = ({
           {currentUser && (
             <div className="flex items-center gap-2 pl-2 border-l border-neutral-200">
               <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs">
+                <div className="w-8 h-8 rounded-full bg-[#1C2B24] text-white flex items-center justify-center font-bold text-xs shadow-xs">
                   {currentUser.name.charAt(0)}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
@@ -286,20 +267,11 @@ export const Header: React.FC<HeaderProps> = ({
                   currentUser.role === 'super_root'
                     ? 'text-amber-600 font-black'
                     : currentUser.role === 'admin'
-                    ? 'text-emerald-600'
+                    ? 'text-[#2E7D5B]'
                     : 'text-neutral-500'
                 }`}>
-                  {currentUser.role === 'super_root' ? 'Super Root' : currentUser.role}
+                  {currentUser.role === 'super_root' ? 'Super Root' : currentUser.role === 'admin' ? 'Administrador' : 'Cajero'}
                 </p>
-              </div>
-              <div className="hidden lg:flex items-center">
-                <MariaLogo
-                  size="xs"
-                  variant="dark"
-                  prefix="Desarrollado por"
-                  withLink={true}
-                  className="bg-neutral-100/90 hover:bg-neutral-200/80 px-2.5 py-1 rounded-xl border border-neutral-200 shadow-2xs"
-                />
               </div>
               <button
                 type="button"

@@ -116,118 +116,126 @@ export const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] w-full bg-[#FAF6F0] flex flex-col items-center justify-between p-3 sm:p-5 select-none font-sans text-[#1C2B24] overflow-hidden">
+    <div className="relative min-h-[100dvh] w-full bg-gradient-to-b from-[#F2F8F4] via-[#FAF6F0] to-[#EAF4EE] flex flex-col items-center justify-between p-3 sm:p-5 select-none font-sans text-[#1C2B24] overflow-x-hidden">
       
-      {/* 1. VISTA PRINCIPAL: MENÚ DE 3 ACCIONES */}
+      {/* Luces de ambiente sutiles y vivas en el fondo */}
+      <div className="absolute -top-24 -left-20 w-80 h-80 bg-[#2E7D5B]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -right-24 w-88 h-88 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 left-1/4 w-96 h-96 bg-[#2E7D5B]/10 rounded-full blur-3xl pointer-events-none" />
+
+      {/* 1. VISTA PRINCIPAL: MENÚ DE 3 ACCIONES VIVO, ALEGRE E INSPIRADOR */}
       {activeView === 'main_menu' && (
-        <div className="w-full max-w-md my-auto flex flex-col items-center justify-between space-y-3 sm:space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-full max-w-md my-auto flex flex-col items-center space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-200 relative z-10">
           
-          {/* Logo y Marca Cajita en Gran Formato */}
-          <div className="text-center space-y-1.5 flex flex-col items-center pt-1">
+          {/* Logo y Marca Cajita en Gran Formato Alegre y Confiable */}
+          <div className="text-center space-y-2 flex flex-col items-center pt-1">
             <div className="relative group cursor-pointer transition-transform hover:scale-105 duration-200">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#2E7D5B] rounded-[22px] sm:rounded-[26px] flex items-center justify-center shadow-lg shadow-[#2E7D5B]/20 border-3 border-white">
+              <div className="w-18 h-18 sm:w-20 sm:h-20 bg-gradient-to-br from-[#2E7D5B] to-[#1C2B24] rounded-[24px] sm:rounded-[28px] flex items-center justify-center shadow-xl shadow-[#2E7D5B]/25 border-4 border-white">
                 <CajitaLogo size={46} variant="iconOnly" lidHex="#FFFFFF" checkHex="#2E7D5B" />
               </div>
-              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2E7D5B] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#2E7D5B] border-2 border-white"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-[#2E7D5B] border-2 border-white shadow-xs"></span>
               </span>
+            </div>
+
+            {/* Badge de estado vivo y confiable */}
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 backdrop-blur-xs border border-[#E4DFD3] shadow-xs text-[11px] font-bold text-[#2E7D5B]">
+              <span className="h-2 w-2 rounded-full bg-[#2E7D5B] inline-block animate-pulse"></span>
+              <span>Punto de Venta en la Nube · Perú 🇵🇪</span>
             </div>
 
             <div>
-              <h1 className="font-marketing font-black text-3xl sm:text-4xl text-[#1C2B24] tracking-tight flex items-center justify-center gap-1.5">
+              <h1 className="font-marketing font-black text-3xl sm:text-4xl text-[#1C2B24] tracking-tight flex items-center justify-center gap-2">
                 Cajita
-                <span className="text-[10px] sm:text-xs font-black bg-[#EAF3EC] text-[#2E7D5B] px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#2E7D5B]/20">
+                <span className="text-xs font-black bg-gradient-to-r from-[#2E7D5B] to-[#3BA87A] text-white px-2.5 py-0.5 rounded-lg uppercase tracking-wider shadow-xs flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
                   POS
                 </span>
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-600 font-medium leading-tight mt-0.5">
-                El punto de venta más ágil y ordenado para tu tienda
+              <p className="text-xs sm:text-sm text-neutral-600 font-medium max-w-sm mx-auto leading-snug mt-1">
+                El punto de venta más ágil, alegre y ordenado para hacer crecer tu tienda
               </p>
             </div>
 
-            {/* Badges rápidos de confianza en paleta oficial */}
-            <div className="flex items-center justify-center gap-1.5 pt-0.5 text-[10px] sm:text-xs font-bold text-neutral-600">
-              <span className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full border border-[#E4DFD3] shadow-2xs">
-                <Zap className="w-3 h-3 text-[#B87D0F]" />
-                Rápido
+            {/* Badges de súper poderes del sistema */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 pt-0.5 text-[10px] sm:text-[11px] font-bold text-neutral-600">
+              <span className="flex items-center gap-1 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full border border-[#E4DFD3] shadow-2xs">
+                <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                Cobro Veloz
               </span>
-              <span className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full border border-[#E4DFD3] shadow-2xs">
+              <span className="flex items-center gap-1 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full border border-[#E4DFD3] shadow-2xs">
                 <Smartphone className="w-3 h-3 text-[#2E7D5B]" />
-                Móvil / PC
+                Celular o PC
               </span>
-              <span className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full border border-[#E4DFD3] shadow-2xs">
+              <span className="flex items-center gap-1 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full border border-[#E4DFD3] shadow-2xs">
                 <ShieldCheck className="w-3 h-3 text-[#2E7D5B]" />
                 Caja Cuadrada
               </span>
             </div>
           </div>
 
-          {/* LAS 3 OPCIONES: DIFERENCIADAS DENTRO DE LA PALETA CAJITA */}
+          {/* LAS 3 OPCIONES: VIVAS, DIFERENCIADAS Y CON GRAN JERARQUÍA */}
           <div className="w-full space-y-2.5 sm:space-y-3">
             
-            {/* OPCIÓN 1: VERDE PRIMARIO CAJITA (Probar Demo Gratis) */}
+            {/* OPCIÓN 1: PROBAR DEMO GRATIS (Verde Esmeralda Radiante) */}
             <button
               id="btn-probar-demo"
               onClick={() => setActiveView('demo_modal')}
-              className="w-full p-3 sm:p-4 bg-[#2E7D5B] hover:bg-[#235F45] text-white rounded-2xl sm:rounded-3xl text-left shadow-md shadow-[#2E7D5B]/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-between cursor-pointer border border-[#2E7D5B] group"
+              className="w-full p-3.5 sm:p-4.5 bg-gradient-to-r from-[#236E4E] via-[#2E7D5B] to-[#3BA87A] hover:from-[#1C5B40] hover:via-[#25664A] hover:to-[#319269] text-white rounded-2xl sm:rounded-3xl text-left shadow-lg shadow-[#2E7D5B]/25 hover:shadow-xl hover:shadow-[#2E7D5B]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-between cursor-pointer border-2 border-[#3BA87A]/50 group relative overflow-hidden"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/20 text-white flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform backdrop-blur-xs">
-                  <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-white ml-0.5" />
+              <div className="flex items-center gap-3.5 relative z-10">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white text-[#2E7D5B] flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform">
+                  <Play className="w-5 h-5 fill-[#2E7D5B] ml-0.5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="bg-white/25 text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
-                      ⚡ 1 Clic · Sin Registro
-                    </span>
+                  <div className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-xs text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider mb-1">
+                    ⚡ 1 Clic · Sin Registro · 100% Gratis
                   </div>
-                  <h3 className="font-marketing font-black text-base sm:text-lg text-white mt-0.5 leading-tight">
-                    Probar Demo Gratis
+                  <h3 className="font-marketing font-black text-base sm:text-lg text-white leading-tight">
+                    Probar Demo Interactiva
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-[#EAF3EC] font-medium leading-tight">
-                    Prueba ventas y productos al instante
+                  <p className="text-[11px] sm:text-xs text-[#EAF3EC] font-medium leading-tight mt-0.5">
+                    Simula ventas, prueba boletas y revisa tu caja ya
                   </p>
                 </div>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#2E7D5B] transition-all shrink-0 ml-1">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/20 flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#2E7D5B] transition-all shrink-0 ml-2 shadow-xs group-hover:translate-x-0.5">
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </button>
 
-            {/* OPCIÓN 2: CARBÓN BOSQUE CAJITA (Quiero para mi Negocio - Plan S/ 30) */}
+            {/* OPCIÓN 2: QUIERO PARA MI NEGOCIO (Carbón Bosque Premium con Destellos Esmeralda) */}
             <button
               id="btn-registrar-negocio"
               onClick={() => {
                 setActiveView('register_business');
                 setError('');
               }}
-              className="w-full p-3 sm:p-4 bg-[#1C2B24] hover:bg-[#14201a] text-white rounded-2xl sm:rounded-3xl text-left shadow-md shadow-[#1C2B24]/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-between cursor-pointer border border-[#2a3f35] group"
+              className="w-full p-3.5 sm:p-4.5 bg-gradient-to-r from-[#14201A] via-[#1C2B24] to-[#253D32] hover:from-[#0E1713] hover:via-[#16231D] hover:to-[#1E3229] text-white rounded-2xl sm:rounded-3xl text-left shadow-md shadow-[#1C2B24]/20 hover:shadow-xl hover:shadow-[#1C2B24]/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-between cursor-pointer border-2 border-[#2E7D5B]/40 hover:border-[#3BA87A] group relative overflow-hidden"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/10 text-[#EAF3EC] flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform">
-                  <Store className="w-5 h-5 sm:w-6 sm:h-6 text-[#2E7D5B]" />
+              <div className="flex items-center gap-3.5 relative z-10">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/10 text-[#3BA87A] flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform border border-white/10">
+                  <Store className="w-5 h-5 sm:w-6 sm:h-6 text-[#3BA87A]" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="bg-[#EAF3EC] text-[#2E7D5B] text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
-                      S/ 30 al mes · Yape
-                    </span>
+                  <div className="inline-flex items-center gap-1 bg-[#2E7D5B]/30 border border-[#2E7D5B]/50 text-[#A3E5C7] text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider mb-1">
+                    🚀 Plan Emprendedor · Tu Tienda Propia
                   </div>
-                  <h3 className="font-marketing font-black text-base sm:text-lg text-white mt-0.5 leading-tight">
+                  <h3 className="font-marketing font-black text-base sm:text-lg text-white leading-tight">
                     Quiero para mi Negocio
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-neutral-300 font-medium leading-tight">
-                    Crea tu tienda y empieza a cobrar hoy
+                  <p className="text-[11px] sm:text-xs text-neutral-300 font-medium leading-tight mt-0.5">
+                    Crea tu tienda, sube tus productos y empieza a cobrar
                   </p>
                 </div>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-[#2E7D5B] group-hover:text-white transition-all shrink-0 ml-1">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 flex items-center justify-center text-neutral-300 group-hover:bg-[#2E7D5B] group-hover:text-white transition-all shrink-0 ml-2 shadow-xs group-hover:translate-x-0.5">
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </button>
 
-            {/* OPCIÓN 3: CREMA / BLANCO LIMPIO CON BORDE CAJITA (Ingresar con PIN de Caja) */}
+            {/* OPCIÓN 3: INGRESAR CON PIN (Blanco Puro Luminoso con Borde Esmeralda) */}
             <button
               id="btn-ingresar-pin"
               onClick={() => {
@@ -235,55 +243,44 @@ export const LoginView: React.FC = () => {
                 setError('');
                 setPin('');
               }}
-              className="w-full p-3 sm:p-4 bg-white hover:bg-[#EAF3EC]/60 text-[#1C2B24] rounded-2xl sm:rounded-3xl text-left shadow-2xs hover:shadow-xs active:scale-[0.98] transition-all duration-150 flex items-center justify-between cursor-pointer border-2 border-[#E4DFD3] hover:border-[#2E7D5B] group"
+              className="w-full p-3.5 sm:p-4.5 bg-white hover:bg-[#F2F8F4] text-[#1C2B24] rounded-2xl sm:rounded-3xl text-left shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-between cursor-pointer border-2 border-[#E4DFD3] hover:border-[#2E7D5B] group relative overflow-hidden"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#FAF6F0] text-[#2E7D5B] border border-[#E4DFD3] flex items-center justify-center shadow-2xs shrink-0 group-hover:bg-[#EAF3EC] transition-colors">
+              <div className="flex items-center gap-3.5 relative z-10">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#EAF3EC] text-[#2E7D5B] flex items-center justify-center shadow-2xs shrink-0 group-hover:bg-[#2E7D5B] group-hover:text-white transition-colors">
                   <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <span className="bg-[#FAF6F0] text-neutral-600 border border-[#E4DFD3] text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-1 bg-[#FAF6F0] text-neutral-600 border border-[#E4DFD3] text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider mb-1">
                     🔑 Personal de Turno
-                  </span>
-                  <h3 className="font-marketing font-black text-base sm:text-lg text-[#1C2B24] mt-0.5 leading-tight">
+                  </div>
+                  <h3 className="font-marketing font-black text-base sm:text-lg text-[#1C2B24] leading-tight">
                     Ingresar con mi PIN de Caja
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-neutral-500 font-medium leading-tight">
-                    Acceso para cajeros y personal registrado
+                  <p className="text-[11px] sm:text-xs text-neutral-500 font-medium leading-tight mt-0.5">
+                    Acceso instantáneo para cajeros y administradores
                   </p>
                 </div>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FAF6F0] border border-[#E4DFD3] flex items-center justify-center text-neutral-600 group-hover:bg-[#2E7D5B] group-hover:text-white group-hover:border-[#2E7D5B] transition-all shrink-0 ml-1">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FAF6F0] border border-[#E4DFD3] flex items-center justify-center text-neutral-500 group-hover:bg-[#2E7D5B] group-hover:text-white group-hover:border-[#2E7D5B] transition-all shrink-0 ml-2 shadow-xs group-hover:translate-x-0.5">
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </button>
 
           </div>
 
-          {/* Dev Attribution Footer with MarIA Logo */}
-          <div className="pt-3 flex flex-col items-center gap-2 border-t border-[#E4DFD3]/80">
-            <div className="text-center text-[11px] text-neutral-500 font-medium">
-              Hecho para comercios, tecnología y tiendas en Perú 🇵🇪
-            </div>
+          {/* Footer cálido con atribución MarIA */}
+          <div className="w-full pt-3 border-t border-[#E4DFD3]/80 flex flex-col items-center gap-2">
+            <span className="text-[11px] text-neutral-500 font-medium">
+              Hecho con ❤️ para comercios y tiendas en Perú 🇵🇪
+            </span>
 
-            {/* MarIA Official Branding & Website Link */}
-            <div className="mt-0.5 pt-1.5 flex flex-col items-center">
+            <div className="opacity-90 hover:opacity-100 transition-opacity">
               <MariaLogo
-                size="md"
+                size="xs"
                 variant="dark"
-                showByline={true}
                 prefix="Desarrollado por"
                 withLink={true}
               />
-              <a
-                href="https://maria-vert.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] font-bold text-[#7C3AED] hover:text-[#6D28D9] underline decoration-[#7C3AED]/40 hover:decoration-[#6D28D9] flex items-center gap-1 mt-1 transition-colors group"
-              >
-                <span>https://maria-vert.vercel.app/</span>
-                <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100" />
-              </a>
             </div>
           </div>
 
@@ -292,7 +289,7 @@ export const LoginView: React.FC = () => {
 
       {/* 2. FORMULARIO MÍNIMO: REGISTRAR NEGOCIO CON YAPE */}
       {activeView === 'register_business' && (
-        <div className="w-full max-w-md my-auto bg-white border border-[#E4DFD3] rounded-3xl shadow-xl p-4 sm:p-5 space-y-3 max-h-[96dvh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-full max-w-md my-auto bg-white border border-[#E4DFD3] rounded-2xl shadow-xs p-5 sm:p-6 space-y-4 max-h-[96dvh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
           
           {/* CABECERA OFICIAL CAJITA POS */}
           <div className="flex items-center justify-between pb-2.5 border-b border-[#E4DFD3]">
@@ -316,7 +313,7 @@ export const LoginView: React.FC = () => {
             </div>
 
             <span className="text-[9px] sm:text-[10px] font-black uppercase text-[#2E7D5B] bg-[#EAF3EC] px-2 py-0.5 rounded-full border border-[#2E7D5B]/20">
-              S/ 30 · Mes
+              Plan Emprendedor
             </span>
           </div>
 
@@ -356,8 +353,8 @@ export const LoginView: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[11px] text-neutral-600">
-                  1. Realiza el pago de S/ 30 por Yape / Plin al número indicado.<br/>
-                  2. Tu cuenta será activada de inmediato al confirmar el abono.
+                  1. Realiza la coordinación por Yape / Plin al número indicado.<br/>
+                  2. Tu cuenta será activada de inmediato al confirmar el registro.
                 </p>
               </div>
 
@@ -467,7 +464,7 @@ export const LoginView: React.FC = () => {
 
       {/* 3. SELECTOR RÁPIDO DE DEMO (Con Rubro de Tecnología y Cabecera Cajita POS) */}
       {activeView === 'demo_modal' && (
-        <div className="w-full max-w-md my-auto bg-white border border-[#E4DFD3] rounded-3xl shadow-xl p-4 sm:p-5 space-y-3 max-h-[96dvh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-full max-w-md my-auto bg-white border border-[#E4DFD3] rounded-2xl shadow-xs p-5 sm:p-6 space-y-4 max-h-[96dvh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
           
           {/* CABECERA OFICIAL CAJITA POS */}
           <div className="flex items-center justify-between pb-2.5 border-b border-[#E4DFD3]">
@@ -484,22 +481,22 @@ export const LoginView: React.FC = () => {
               <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[#2E7D5B] rounded-lg flex items-center justify-center shadow-xs border border-white">
                 <CajitaLogo size={16} variant="iconOnly" lidHex="#FFFFFF" checkHex="#2E7D5B" />
               </div>
-              <span className="font-marketing font-black text-sm sm:text-base text-[#1C2B24] tracking-tight">Cajita</span>
-              <span className="text-[8px] sm:text-[9px] font-black bg-[#EAF3EC] text-[#2E7D5B] px-1.5 py-0.2 rounded uppercase tracking-wider border border-[#2E7D5B]/20">
+              <span className="font-marketing font-bold text-sm sm:text-base text-[#1C2B24] tracking-tight">Cajita</span>
+              <span className="text-[8px] sm:text-[9px] font-bold bg-[#EAF3EC] text-[#2E7D5B] px-1.5 py-0.2 rounded uppercase tracking-wider border border-[#2E7D5B]/20">
                 POS
               </span>
             </div>
 
-            <span className="text-[9px] sm:text-[10px] font-black uppercase text-[#2E7D5B] bg-[#EAF3EC] px-2 py-0.5 rounded-full border border-[#2E7D5B]/20">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase text-[#2E7D5B] bg-[#EAF3EC] px-2 py-0.5 rounded-full border border-[#2E7D5B]/20">
               Demo 1 Clic
             </span>
           </div>
 
           <div className="text-center space-y-0.5">
-            <h2 className="font-marketing font-black text-lg sm:text-xl text-[#1C2B24]">
+            <h2 className="font-marketing font-bold text-lg sm:text-xl text-[#1C2B24]">
               ¿Qué rubro quieres probar?
             </h2>
-            <p className="text-[11px] sm:text-xs text-neutral-600 font-medium">
+            <p className="text-[11px] sm:text-xs text-neutral-500 font-normal">
               Cargaremos un catálogo con productos listos para cobrar.
             </p>
           </div>
@@ -518,30 +515,39 @@ export const LoginView: React.FC = () => {
             />
           </div>
 
-          {/* Opciones directas por rubro en la paleta limpia de Cajita */}
-          <div className="space-y-1.5">
+          {/* Opciones directas por rubro alegres y vibrantes */}
+          <div className="space-y-2">
             {[
-              { id: 'tecnologia', label: 'Tecnología, Cómputo & Celulares', icon: '💻', desc: 'Periféricos gamer, cargadores, cables y discos' },
-              { id: 'ropa', label: 'Tienda de Ropa & Moda', icon: '👗', desc: 'Prendas con tallas, colores y ofertas' },
-              { id: 'bodega', label: 'Bodega & Minimarket', icon: '🏪', desc: 'Abarrotes, bebidas y venta al peso' },
-              { id: 'cafeteria', label: 'Cafetería & Restaurante', icon: '☕', desc: 'Bebidas, combos y snacks de paso' },
-              { id: 'farmacia', label: 'Farmacia & Botica', icon: '💊', desc: 'Medicamentos, fecha de lote y stock' },
+              { id: 'tecnologia', label: 'Tecnología, Cómputo & Celulares', icon: '💻', tag: 'Cómputo & Gamer', desc: 'Periféricos gamer, cargadores, cables y discos', bg: 'hover:border-sky-500 hover:bg-sky-50/60' },
+              { id: 'ropa', label: 'Tienda de Ropa & Moda', icon: '👗', tag: 'Moda & Calzado', desc: 'Prendas con tallas, colores y ofertas', bg: 'hover:border-purple-500 hover:bg-purple-50/60' },
+              { id: 'bodega', label: 'Bodega & Minimarket', icon: '🏪', tag: 'Abarrotes & Snacks', desc: 'Abarrotes, bebidas y venta al peso', bg: 'hover:border-amber-500 hover:bg-amber-50/60' },
+              { id: 'cafeteria', label: 'Cafetería & Restaurante', icon: '☕', tag: 'Alimentos & Bebidas', desc: 'Bebidas, combos y snacks de paso', bg: 'hover:border-orange-500 hover:bg-orange-50/60' },
+              { id: 'farmacia', label: 'Farmacia & Botica', icon: '💊', tag: 'Salud & Botica', desc: 'Medicamentos, fecha de lote y stock', bg: 'hover:border-emerald-500 hover:bg-emerald-50/60' },
             ].map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleLaunchDemo(item.id as BusinessSectorId)}
-                className="w-full p-2.5 bg-[#FAF6F0] hover:bg-[#EAF3EC] border border-[#E4DFD3] hover:border-[#2E7D5B] rounded-2xl text-left transition-all flex items-center justify-between cursor-pointer group shadow-2xs"
+                className={`w-full p-3 bg-white border border-[#E4DFD3] ${item.bg} rounded-xl text-left transition-all flex items-center justify-between cursor-pointer group shadow-2xs hover:shadow-xs`}
               >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xl">{item.icon}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl p-1.5 rounded-lg bg-[#FAF6F0] group-hover:scale-110 transition-transform">
+                    {item.icon}
+                  </span>
                   <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-[#1C2B24] group-hover:text-[#2E7D5B] leading-tight">
-                      {item.label}
-                    </h4>
-                    <p className="text-[10px] text-neutral-500 leading-tight">{item.desc}</p>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-bold text-xs sm:text-sm text-[#1C2B24] leading-tight">
+                        {item.label}
+                      </h4>
+                      <span className="text-[9px] font-bold text-neutral-500 bg-[#FAF6F0] px-1.5 py-0.2 rounded border border-[#E4DFD3]">
+                        {item.tag}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 leading-tight mt-0.5">{item.desc}</p>
                   </div>
                 </div>
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-[#2E7D5B] group-hover:translate-x-1 transition-all" />
+                <div className="w-7 h-7 rounded-lg bg-[#FAF6F0] group-hover:bg-[#2E7D5B] group-hover:text-white text-neutral-400 flex items-center justify-center transition-all shrink-0 ml-1">
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </div>
               </button>
             ))}
           </div>
@@ -551,7 +557,7 @@ export const LoginView: React.FC = () => {
 
       {/* 4. INGRESO RÁPIDO CON PIN (Con Cabecera Oficial Cajita POS) */}
       {activeView === 'pin_entry' && (
-        <div className="w-full max-w-xs my-auto bg-white border border-[#E4DFD3] rounded-3xl shadow-xl p-4 sm:p-5 space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-full max-w-xs my-auto bg-white border border-[#E4DFD3] rounded-2xl shadow-xs p-5 space-y-4 animate-in fade-in zoom-in-95 duration-200">
           
           {/* CABECERA OFICIAL CAJITA POS */}
           <div className="flex items-center justify-between pb-2 border-b border-[#E4DFD3]">

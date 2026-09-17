@@ -71,34 +71,34 @@ export const MariaLogo: React.FC<MariaLogoProps> = ({
   className = '',
 }) => {
   const iconSizes = {
-    xs: 18,
-    sm: 22,
-    md: 28,
-    lg: 38,
+    xs: 14,
+    sm: 18,
+    md: 24,
+    lg: 32,
   };
 
   const textSizes = {
-    xs: 'text-xs',
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-xl',
+    xs: 'text-[11px]',
+    sm: 'text-xs',
+    md: 'text-sm',
+    lg: 'text-lg',
   };
 
   const content = (
     <div className={`inline-flex flex-col items-center group transition-all ${className}`}>
       {prefix && (
         <span
-          className={`text-[10px] font-medium tracking-tight mb-0.5 ${
-            variant === 'light' ? 'text-neutral-300' : 'text-neutral-500'
+          className={`text-[8px] sm:text-[9px] font-medium tracking-tight mb-0.5 ${
+            variant === 'light' ? 'text-neutral-300/80' : 'text-neutral-400'
           }`}
         >
           {prefix}
         </span>
       )}
 
-      <div className="flex items-center gap-1.5 leading-none">
+      <div className="flex items-center gap-1 leading-none">
         {/* Rocket Mascot */}
-        <div className="transition-transform group-hover:scale-110 duration-200">
+        <div className="transition-transform group-hover:scale-105 duration-200">
           <MariaRocketIcon size={iconSizes[size]} />
         </div>
 
@@ -113,10 +113,10 @@ export const MariaLogo: React.FC<MariaLogoProps> = ({
             <span className="text-[#7C3AED] group-hover:text-[#6D28D9] transition-colors">IA</span>
           </div>
 
-          {showByline && (
+          {showByline && size !== 'xs' && (
             <span
-              className={`text-[9px] font-semibold tracking-wide leading-tight mt-0.5 ${
-                variant === 'light' ? 'text-emerald-300/90' : 'text-neutral-500'
+              className={`text-[8px] font-semibold tracking-wide leading-tight mt-0.5 ${
+                variant === 'light' ? 'text-emerald-300/80' : 'text-neutral-400'
               }`}
             >
               {bylineText}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePos } from '../../context/PosContext';
-import { Sale, Customer } from '../../types';
+import { Sale } from '../../types';
 import { MessageSquare, Send, CheckCircle2, Settings, ExternalLink, X, Phone, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 
 interface WhatsappIntegrationModalProps {
@@ -12,7 +12,7 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
   sale,
   onClose,
 }) => {
-  const { customers, currentTenant } = usePos();
+  const { currentTenant } = usePos();
   
   // n8n & Evolution API configuration state (stored in localStorage or state)
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState<string>(
@@ -26,7 +26,7 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
   );
 
   const [phoneNumber, setPhoneNumber] = useState<string>(
-    sale?.customerPhone || (customers?.[0]?.phone || '+51999888777')
+    sale?.customerPhone || '+51999888777'
   );
   
   const [messageTemplate, setMessageTemplate] = useState<string>(

@@ -1083,7 +1083,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTenants((prev) => [newTenant, ...prev]);
 
     setLicense({
-      planName: 'Plan Emprendedor S/ 30',
+      planName: 'Plan Emprendedor',
       priceMonthly: 30,
       maxUsers: 2,
       status: 'active',

@@ -141,7 +141,7 @@ export const SuperRootModule: React.FC = () => {
             Control de Negocios, Licencias & Límites de Usuarios
           </h1>
           <p className="text-xs text-[#EAF3EC]/80 mt-1 max-w-2xl leading-relaxed">
-            Solo tú como Super Root tienes acceso a este panel para crear tiendas, controlar el límite de 2 usuarios (Plan Emprendedor S/ 30), activar/pausar suscripciones y dar soporte.
+            Solo tú como Super Root tienes acceso a este panel para crear tiendas, controlar el límite de 2 usuarios (Plan Emprendedor), activar/pausar suscripciones y dar soporte.
           </p>
         </div>
 
@@ -184,7 +184,7 @@ export const SuperRootModule: React.FC = () => {
 
         <div className="bg-white p-4 rounded-2xl border border-neutral-200 shadow-2xs">
           <div className="flex items-center justify-between text-neutral-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Plan S/ 30 (MRR)</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Recaudación (MRR)</span>
             <DollarSign className="w-4 h-4 text-[#2E7D5B]" />
           </div>
           <div className="text-2xl font-black text-neutral-900">S/ {estimatedRevenue}.00</div>
@@ -279,7 +279,7 @@ export const SuperRootModule: React.FC = () => {
 
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-black text-neutral-900">Plan S/ 30</span>
+                        <span className="font-black text-neutral-900">Plan Emprendedor</span>
                         <span className="px-2 py-0.5 bg-[#EAF3EC] text-[#2E7D5B] font-bold text-[10px] rounded-md border border-[#2E7D5B]/20">
                           {t.maxUsers} Usuarios
                         </span>
@@ -431,7 +431,7 @@ export const SuperRootModule: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Límite de Usuarios (Plan S/ 30)</label>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Límite de Usuarios (Plan Emprendedor)</label>
                 <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-xs text-neutral-700">
                   <strong>2 Usuarios Permitidos:</strong> 1 Administrador (Juan) + 1 Vendedor inicial (PIN: 123).
                 </div>

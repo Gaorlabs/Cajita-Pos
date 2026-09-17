@@ -34,7 +34,7 @@ export const INITIAL_USERS: User[] = [
 ];
 
 export const INITIAL_LICENSE: TenantLicense = {
-  planName: 'Plan Emprendedor S/ 30',
+  planName: 'Plan Emprendedor',
   priceMonthly: 30,
   maxUsers: 2, // 1 Admin + 1 Vendedor
   status: 'active',
