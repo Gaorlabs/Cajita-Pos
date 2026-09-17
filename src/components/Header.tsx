@@ -15,7 +15,10 @@ import {
   ExternalLink,
   ShieldCheck,
   ArrowUpRight,
+  Maximize,
+  Minimize,
 } from 'lucide-react';
+import { useFullscreen } from '../utils/fullscreen';
 import { OpenShiftModal } from './Ventas/OpenShiftModal';
 import { CloseShiftModal } from './Ventas/CloseShiftModal';
 import { ShiftSummaryModal } from './Ventas/ShiftSummaryModal';
@@ -42,6 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
     logout,
   } = usePos();
 
+  const { isFullscreen, isSupported, toggle: toggleFullscreen } = useFullscreen();
   const [timeStr, setTimeStr] = useState('');
 
   // Shift & Sales modals state directly in Header
@@ -254,6 +258,28 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="sm:hidden font-bold">
                 {lowStockCount}
               </span>
+            </button>
+          )}
+
+          {/* Fullscreen Mode Toggle */}
+          {isSupported && (
+            <button
+              id="btn-header-fullscreen"
+              type="button"
+              onClick={toggleFullscreen}
+              className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 border ${
+                isFullscreen
+                  ? 'bg-[#EAF3EC] text-[#2E7D5B] border-[#2E7D5B]/30 shadow-2xs'
+                  : 'text-neutral-600 hover:text-[#1C2B24] hover:bg-[#FAF6F0] border-transparent'
+              }`}
+              aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+              title={isFullscreen ? "Restaurar tamaño normal" : "Pantalla completa (Maximizar espacio de venta)"}
+            >
+              {isFullscreen ? (
+                <Minimize className="w-4 h-4 text-[#2E7D5B]" />
+              ) : (
+                <Maximize className="w-4 h-4" />
+              )}
             </button>
           )}
 

@@ -19,16 +19,20 @@ import {
   Laptop,
   ShieldAlert,
   ExternalLink,
+  Maximize,
+  Minimize,
 } from 'lucide-react';
 import { BUSINESS_SECTORS, BusinessSectorId } from '../data/businessSectors';
 import { CajitaLogo } from './CajitaLogo';
 import { MariaLogo } from './MariaLogo';
 import { User as UserType } from '../types';
+import { useFullscreen } from '../utils/fullscreen';
 
 type ActiveView = 'main_menu' | 'register_business' | 'demo_modal' | 'pin_entry';
 
 export const LoginView: React.FC = () => {
   const { login, registerTenant, setIsDemoTour, users } = usePos();
+  const { isFullscreen, isSupported, toggle: toggleFullscreen } = useFullscreen();
   const [activeView, setActiveView] = useState<ActiveView>('main_menu');
   const [error, setError] = useState('');
 
@@ -122,6 +126,37 @@ export const LoginView: React.FC = () => {
       <div className="absolute -top-24 -left-20 w-80 h-80 bg-[#2E7D5B]/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-1/3 -right-24 w-88 h-88 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 left-1/4 w-96 h-96 bg-[#2E7D5B]/10 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Barra superior de utilidades (Pantalla Completa en Móvil / Tablet) */}
+      <div className="w-full max-w-2xl flex items-center justify-between z-20 pb-1 pt-0.5">
+        <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#2E7D5B]">
+          <span className="h-2 w-2 rounded-full bg-[#2E7D5B] inline-block animate-pulse"></span>
+          <span className="hidden sm:inline">Punto de Venta en la Nube · Perú 🇵🇪</span>
+          <span className="sm:hidden">Cajita POS 🇵🇪</span>
+        </div>
+
+        {isSupported && (
+          <button
+            id="btn-portal-fullscreen"
+            type="button"
+            onClick={toggleFullscreen}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-[#1C2B24] border border-[#E4DFD3] shadow-xs text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            title={isFullscreen ? "Restaurar tamaño normal" : "Ver en pantalla completa (oculta barras del navegador para más espacio)"}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize className="w-3.5 h-3.5 text-[#2E7D5B]" />
+                <span className="text-[11px] font-bold">Salir de pantalla completa</span>
+              </>
+            ) : (
+              <>
+                <Maximize className="w-3.5 h-3.5 text-[#2E7D5B]" />
+                <span className="text-[11px] font-bold">Pantalla Completa</span>
+              </>
+            )}
+          </button>
+        )}
+      </div>
 
       {/* 1. VISTA PRINCIPAL: MENÚ DE 3 ACCIONES VIVO, ALEGRE E INSPIRADOR */}
       {activeView === 'main_menu' && (
