@@ -113,7 +113,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             onClick={onClose}
             className="p-1 text-[#888880] hover:text-[#F1EFE8] hover:bg-[#282825] rounded-lg transition-colors cursor-pointer"
           >
-            <Square className="w-5 h-5 text-[#888880] hover:text-[#F1EFE8]" />
+            <X className="w-5 h-5 text-[#888880] hover:text-[#F1EFE8]" />
           </button>
         </div>
 

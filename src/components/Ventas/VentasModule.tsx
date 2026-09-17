@@ -437,7 +437,7 @@ export const VentasModule: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col md:flex-row overflow-hidden bg-[#FAF6F0]">
+    <div className="h-[calc(100dvh-4rem-3.5rem)] md:h-[calc(100dvh-4rem)] flex flex-col md:flex-row overflow-hidden bg-[#FAF6F0]">
       {/* LEFT SECTION: PRODUCT CATALOG (Adaptive: 100% on mobile/tablet catalog mode, ~55-65% in split/desktop mode) */}
       <div
         className={`flex-1 flex flex-col h-full overflow-hidden p-2.5 sm:p-3.5 md:p-4 lg:p-6 space-y-2.5 sm:space-y-4 ${

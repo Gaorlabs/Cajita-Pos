@@ -305,17 +305,19 @@ export const Sidebar: React.FC<{
               <LogOut className="w-4 h-4" />
             </button>
 
-            {/* MarIA Rocket Icon in Rail */}
-            <a
-              href="https://maria-vert.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1 rounded-lg hover:bg-[#235F45]/40 transition-all cursor-pointer group flex flex-col items-center pt-1"
-              title="Desarrollado por MARIA by GaorSystem (maria-vert.vercel.app)"
-            >
-              <MariaRocketIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="text-[7px] text-emerald-300/80 font-black tracking-tighter mt-0.5">MARIA</span>
-            </a>
+            {/* MarIA Rocket Icon in Rail - hide in POS (ventas) */}
+            {activeModule !== 'ventas' && (
+              <a
+                href="https://maria-vert.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 rounded-lg hover:bg-[#235F45]/40 transition-all cursor-pointer group flex flex-col items-center pt-1 opacity-70 hover:opacity-100"
+                title="Desarrollado por MARIA by GaorSystem (maria-vert.vercel.app)"
+              >
+                <MariaRocketIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span className="text-[6.5px] text-emerald-300/80 font-black tracking-tighter mt-0.5">MARIA</span>
+              </a>
+            )}
           </>
         ) : (
           <>
@@ -363,15 +365,17 @@ export const Sidebar: React.FC<{
               </button>
             </div>
 
-            {/* Developer Attribution Link with MarIA Logo */}
-            <div className="px-2 pt-2 border-t border-[#235F45]/40 flex flex-col items-center opacity-85 hover:opacity-100 transition-opacity">
-              <MariaLogo
-                size="xs"
-                variant="light"
-                prefix="Desarrollado por"
-                withLink={true}
-              />
-            </div>
+            {/* Developer Attribution Link with MarIA Logo - hide in POS (ventas) */}
+            {activeModule !== 'ventas' && (
+              <div className="px-2 pt-2 border-t border-[#235F45]/40 flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
+                <MariaLogo
+                  size="xs"
+                  variant="light"
+                  prefix="Desarrollado por"
+                  withLink={true}
+                />
+              </div>
+            )}
           </>
         )}
       </div>

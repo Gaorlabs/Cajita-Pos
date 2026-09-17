@@ -141,7 +141,7 @@ export const SuperRootModule: React.FC = () => {
             Control de Negocios, Licencias & Límites de Usuarios
           </h1>
           <p className="text-xs text-[#EAF3EC]/80 mt-1 max-w-2xl leading-relaxed">
-            Solo tú como Super Root tienes acceso a este panel para crear tiendas, controlar el límite de 2 usuarios (Plan Emprendedor), activar/pausar suscripciones y dar soporte.
+            Solo tú como Super Root tienes acceso a este panel para crear tiendas, controlar límites de usuarios por establecimiento, activar/pausar accesos y brindar soporte integral.
           </p>
         </div>
 

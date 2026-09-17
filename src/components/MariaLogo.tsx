@@ -71,25 +71,27 @@ export const MariaLogo: React.FC<MariaLogoProps> = ({
   className = '',
 }) => {
   const iconSizes = {
-    xs: 14,
-    sm: 18,
-    md: 24,
-    lg: 32,
+    xs: 12,
+    sm: 16,
+    md: 22,
+    lg: 28,
   };
 
   const textSizes = {
-    xs: 'text-[11px]',
+    xs: 'text-[9.5px]',
     sm: 'text-xs',
     md: 'text-sm',
-    lg: 'text-lg',
+    lg: 'text-base',
   };
 
   const content = (
     <div className={`inline-flex flex-col items-center group transition-all ${className}`}>
       {prefix && (
         <span
-          className={`text-[8px] sm:text-[9px] font-medium tracking-tight mb-0.5 ${
-            variant === 'light' ? 'text-neutral-300/80' : 'text-neutral-400'
+          className={`${
+            size === 'xs' ? 'text-[7px]' : 'text-[8px] sm:text-[9px]'
+          } font-medium tracking-tight mb-0.5 ${
+            variant === 'light' ? 'text-neutral-300/70' : 'text-neutral-400'
           }`}
         >
           {prefix}

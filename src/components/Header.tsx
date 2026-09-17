@@ -139,13 +139,14 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setShowShiftDropdown(!showShiftDropdown)}
-                className="flex items-center gap-1.5 text-xs font-normal text-[#6B6B66] hover:text-[#1A1A1A] transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                className="flex items-center gap-1 sm:gap-1.5 text-xs font-normal text-[#6B6B66] hover:text-[#1A1A1A] transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 title="Ver detalles de la caja activa"
               >
                 <div className="w-3.5 h-3.5 border border-[#6B6B66] rounded-xs shrink-0 flex items-center justify-center">
                   <div className="w-1.5 h-1.5 bg-[#6B6B66] rounded-xs" />
                 </div>
-                <span>Caja {activeShift.shiftNumber.startsWith('TUR-') ? activeShift.shiftNumber : `TUR-00${activeShift.shiftNumber}`}:</span>
+                <span className="hidden sm:inline">Caja {activeShift.shiftNumber.startsWith('TUR-') ? activeShift.shiftNumber : `TUR-00${activeShift.shiftNumber}`}:</span>
+                <span className="sm:hidden font-medium">Caja:</span>
                 <span className="font-mono font-medium text-[#1A1A1A]">S/ {shiftTotal.toFixed(2)}</span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-[#5F5E5A] transition-transform shrink-0 ${
@@ -161,7 +162,8 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Haz clic para aperturar turno de caja"
               >
                 <Lock className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                <span>Caja Cerrada (Abrir)</span>
+                <span className="hidden sm:inline">Caja Cerrada (Abrir)</span>
+                <span className="sm:hidden">Abrir Caja</span>
               </button>
             )}
 
@@ -240,14 +242,17 @@ export const Header: React.FC<HeaderProps> = ({
           {lowStockCount > 0 && currentUser?.role === 'admin' && (
             <button
               onClick={handleLowStockClick}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#FAEEDA] hover:bg-[#F3E2BD] text-[#633806] rounded-xl text-xs font-medium transition-colors cursor-pointer border border-[#EF9F27]/30 whitespace-nowrap shrink-0"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-[#FAEEDA] hover:bg-[#F3E2BD] text-[#633806] rounded-xl text-xs font-medium transition-colors cursor-pointer border border-[#EF9F27]/30 whitespace-nowrap shrink-0"
               title="Ver productos con bajo stock en inventario"
             >
               <div className="w-3.5 h-3.5 border border-[#633806] rounded-xs shrink-0 flex items-center justify-center">
                 <div className="w-1.5 h-1.5 bg-[#633806] rounded-xs" />
               </div>
-              <span className="whitespace-nowrap">
+              <span className="hidden sm:inline whitespace-nowrap">
                 Stock bajo: <strong className="font-bold">{lowStockCount}</strong>
+              </span>
+              <span className="sm:hidden font-bold">
+                {lowStockCount}
               </span>
             </button>
           )}

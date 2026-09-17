@@ -7,7 +7,6 @@ export const MobileBottomNav: React.FC = () => {
   const { currentUser, activeModule, setActiveModule, cart, getLowStockProducts } = usePos();
 
   if (!currentUser) return null;
-  if (activeModule === 'ventas') return null;
 
   const lowStockCount = getLowStockProducts().length;
   const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);

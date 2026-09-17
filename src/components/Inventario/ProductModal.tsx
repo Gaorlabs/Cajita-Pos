@@ -223,8 +223,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden my-8 border border-neutral-800">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl max-h-[92dvh] flex flex-col overflow-hidden my-auto border border-neutral-800">
         {/* Modal Header */}
         <div className="bg-neutral-900 text-white p-5 flex items-center justify-between border-b border-neutral-800">
           <div className="flex items-center gap-3">
@@ -297,7 +297,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">

@@ -133,7 +133,7 @@ export const UserManagementSection: React.FC = () => {
 
   const openWhatsAppUpgrade = () => {
     const text = encodeURIComponent(
-      `Hola Cajita POS, deseo ampliar el cupo de usuarios de mi negocio en el Plan Emprendedor (actualmente tengo ${activeCount}/${license.maxUsers} usuarios).`
+      `Hola Cajita POS, deseo ampliar el cupo de usuarios de mi negocio (actualmente tengo ${activeCount}/${license.maxUsers} usuarios).`
     );
     window.open(`https://wa.me/51999888777?text=${text}`, '_blank');
   };
@@ -606,9 +606,9 @@ export const UserManagementSection: React.FC = () => {
               <div className="p-3 bg-[#FAEEDA] border border-[#EF9F27]/30 rounded-2xl flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-[#B87D0F] shrink-0 mt-0.5" />
                 <div className="text-xs text-[#633806] space-y-1">
-                  <p className="font-bold">Máximo 2 Usuarios en Plan Emprendedor</p>
+                  <p className="font-bold">Capacidad Máxima de Usuarios Alcanzada</p>
                   <p className="text-[11px] leading-relaxed">
-                    Tu plan actual incluye <strong>1 Administrador</strong> y <strong>1 Vendedor</strong>. Tienes los {license.maxUsers} cupos ocupados.
+                    Tu cuenta incluye actualmente <strong>1 Administrador</strong> y <strong>1 Vendedor</strong>. Tienes los {license.maxUsers} cupos activos ocupados.
                   </p>
                 </div>
               </div>
@@ -618,10 +618,10 @@ export const UserManagementSection: React.FC = () => {
                   ¿Necesitas habilitar otra caja o vendedor de turno para tu tienda?
                 </p>
                 <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <p className="font-bold text-neutral-800">Opción 1: Usuario adicional (+ S/ 15/mes)</p>
-                  <p className="text-[11px] text-neutral-500">Agrega un 3er o 4to cajero sin cambiar de plan.</p>
+                  <p className="font-bold text-neutral-800">Opción 1: Habilitar usuario adicional</p>
+                  <p className="text-[11px] text-neutral-500">Agrega un nuevo cajero o punto de venta para tu equipo.</p>
                   <p className="font-bold text-neutral-800 pt-1">Opción 2: Reemplazar el vendedor actual</p>
-                  <p className="text-[11px] text-neutral-500">Puedes editar el nombre o PIN del vendedor existente sin costo.</p>
+                  <p className="text-[11px] text-neutral-500">Puedes editar el nombre o PIN del vendedor existente en cualquier momento.</p>
                 </div>
               </div>
 
