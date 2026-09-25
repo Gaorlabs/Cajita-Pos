@@ -194,15 +194,25 @@ export const BarcodeWorkflowGuideModal: React.FC<BarcodeWorkflowGuideModalProps>
           <div className="p-4 sm:p-5 rounded-2xl border-2 border-amber-200 bg-amber-50/60 space-y-2.5">
             <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm">
               <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>¿Y si escaneas un código nuevo que nunca registraste? (Registro Exprés)</span>
+              <span>¿Y si escaneas un código nuevo que nunca registraste? (Aviso Inteligente)</span>
             </div>
             <p className="text-xs text-amber-900 leading-relaxed">
-              El sistema no arroja error ni borra la venta. Reconoce que es un código nuevo y muestra un aviso: 
-              <strong className="block mt-1 font-mono text-[11px] bg-white p-2 rounded-lg border border-amber-300">
-                "Código no registrado: 7750106001221. ¿Deseas registrar este producto nuevo?"
-              </strong>
-              Al pulsar <strong>"Registrar Producto"</strong>, el código ya viene escrito. Rellenas el nombre y precio, y al guardar <strong>se agrega automáticamente a la venta en curso</strong> para no hacer esperar al cliente.
+              El sistema no borra la venta ni se detiene. Reconoce que el código no está asignado y abre una ventana con dos opciones:
             </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="p-3 bg-white rounded-xl border border-amber-300 space-y-1">
+                <strong className="text-emerald-700 block font-bold">1. Registrar Producto Nuevo</strong>
+                <p className="text-[11px] text-neutral-600">
+                  Crea el artículo desde cero con el código ya prellenado y lo suma directo a la venta.
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-amber-300 space-y-1">
+                <strong className="text-blue-700 block font-bold">2. Vincular a Producto Existente</strong>
+                <p className="text-[11px] text-neutral-600">
+                  Si el producto ya existía en tu lista pero no tenía código de barras, lo buscas y se lo asignas en 1 clic.
+                </p>
+              </div>
+            </div>
             <div className="pt-1">
               <button
                 type="button"

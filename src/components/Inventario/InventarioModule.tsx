@@ -5,6 +5,7 @@ import { CategoryIcon } from '../CategoryIcon';
 import { ProductModal } from './ProductModal';
 import { CategoryModal } from './CategoryModal';
 import { BarcodeScannerModal } from '../Scanner/BarcodeScannerModal';
+import { LinkBarcodeModal } from '../Scanner/LinkBarcodeModal';
 import { getEffectiveStock } from '../../utils/comboUtils';
 import {
   Package,
@@ -21,6 +22,9 @@ import {
   Gift,
   Sparkles,
   Camera,
+  Barcode,
+  Link2,
+  X,
 } from 'lucide-react';
 
 export const InventarioModule: React.FC = () => {
@@ -44,6 +48,10 @@ export const InventarioModule: React.FC = () => {
   const [productTypeFilter, setProductTypeFilter] = useState<'all' | 'standard' | 'combo'>('all');
   const [onlyLowStock, setOnlyLowStock] = useState(false);
   const [showInventoryScanner, setShowInventoryScanner] = useState(false);
+  const [assigningBarcodeProduct, setAssigningBarcodeProduct] = useState<Product | null>(null);
+  const [unregisteredInventoryCode, setUnregisteredInventoryCode] = useState<string | null>(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Modals state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -311,10 +319,26 @@ export const InventarioModule: React.FC = () => {
                       <div key={p.id} className="p-4 space-y-3 bg-white">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <div className="flex items-center gap-1.5 mb-1">
+                            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                               <span className="font-mono text-[10px] font-bold bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded border border-neutral-200">
                                 {p.sku}
                               </span>
+                              {p.barcode ? (
+                                <span className="font-mono text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                  <Barcode className="w-3 h-3 text-emerald-600" />
+                                  {p.barcode}
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setAssigningBarcodeProduct(p)}
+                                  className="text-[10px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded flex items-center gap-1 cursor-pointer transition-colors"
+                                  title="Asignar código de barras"
+                                >
+                                  <Camera className="w-3 h-3 text-amber-600" />
+                                  <span>+ Código</span>
+                                </button>
+                              )}
                               <span className="text-[11px] text-neutral-500 font-medium">
                                 {cat?.name || 'General'}
                               </span>
@@ -383,6 +407,7 @@ export const InventarioModule: React.FC = () => {
                   <thead>
                     <tr className="bg-neutral-100 border-b border-neutral-200 text-neutral-700 uppercase tracking-wider font-bold text-[11px]">
                       <th className="py-3 px-4 font-mono">SKU</th>
+                      <th className="py-3 px-4 font-mono">Cód. Barras</th>
                       <th className="py-3 px-4">Producto</th>
                       <th className="py-3 px-4">Categoría</th>
                       <th className="py-3 px-4 text-right font-mono">P. Compra</th>
@@ -411,6 +436,32 @@ export const InventarioModule: React.FC = () => {
                         >
                           <td className="py-3.5 px-4 font-mono font-bold text-black">
                             {p.sku}
+                          </td>
+                          <td className="py-3.5 px-4 font-mono">
+                            {p.barcode ? (
+                              <div className="flex items-center gap-1.5 font-bold text-neutral-900 group">
+                                <Barcode className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                <span>{p.barcode}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setAssigningBarcodeProduct(p)}
+                                  className="opacity-0 group-hover:opacity-100 p-1 text-neutral-400 hover:text-black transition-opacity cursor-pointer"
+                                  title="Editar / reasignar código de barras"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setAssigningBarcodeProduct(p)}
+                                className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                                title="Escanear o registrar código de barras físico a este producto"
+                              >
+                                <Camera className="w-3 h-3 text-amber-600" />
+                                <span>+ Asignar Código</span>
+                              </button>
+                            )}
                           </td>
                           <td className="py-3.5 px-4">
                             <div className="font-bold text-neutral-900">{p.name}</div>
@@ -541,10 +592,17 @@ export const InventarioModule: React.FC = () => {
         <ProductModal
           product={editingProduct}
           categories={categories}
-          onSave={handleSaveProduct}
+          initialBarcode={unregisteredInventoryCode || undefined}
+          onSave={(data) => {
+            handleSaveProduct(data);
+            setUnregisteredInventoryCode(null);
+            setToastMsg(`✓ Producto "${data.name}" guardado con éxito`);
+            setTimeout(() => setToastMsg(null), 3500);
+          }}
           onClose={() => {
             setIsProductModalOpen(false);
             setEditingProduct(null);
+            setUnregisteredInventoryCode(null);
           }}
         />
       )}
@@ -565,11 +623,23 @@ export const InventarioModule: React.FC = () => {
         isOpen={showInventoryScanner}
         onClose={() => setShowInventoryScanner(false)}
         onScan={(scannedCode) => {
-          setSearchTerm(scannedCode);
           setShowInventoryScanner(false);
+          const matched = products.find(
+            (p) =>
+              p.sku.toLowerCase() === scannedCode.toLowerCase() ||
+              (p.barcode && p.barcode.toLowerCase() === scannedCode.toLowerCase())
+          );
+          if (matched) {
+            setSearchTerm(scannedCode);
+            setToastMsg(`✓ Producto encontrado: ${matched.name}`);
+            setTimeout(() => setToastMsg(null), 3500);
+          } else {
+            setUnregisteredInventoryCode(scannedCode);
+            setShowLinkModal(true);
+          }
         }}
-        title="Buscar Producto por Código"
-        subtitle="Apunta la cámara del celular al código de barras"
+        title="Buscar o Escanear Código de Barras"
+        subtitle="Apunta la cámara del celular al código de barras del producto"
         mode="single"
         knownProducts={products.map((p) => ({
           sku: p.sku,
@@ -578,6 +648,65 @@ export const InventarioModule: React.FC = () => {
           salePrice: p.salePrice,
         }))}
       />
+
+      {/* Assign Barcode specifically to product Modal */}
+      {assigningBarcodeProduct && (
+        <BarcodeScannerModal
+          isOpen={!!assigningBarcodeProduct}
+          onClose={() => setAssigningBarcodeProduct(null)}
+          onScan={(scannedCode) => {
+            const updated = { ...assigningBarcodeProduct, barcode: scannedCode };
+            updateProduct(updated);
+            const pName = assigningBarcodeProduct.name;
+            setAssigningBarcodeProduct(null);
+            setToastMsg(`✓ Código de barras ${scannedCode} asignado a "${pName}"`);
+            setTimeout(() => setToastMsg(null), 4000);
+          }}
+          title={`Asignar Código: ${assigningBarcodeProduct.name}`}
+          subtitle="Apunta la cámara del celular al código de barras físico del empaque"
+          mode="single"
+        />
+      )}
+
+      {/* Link Barcode to Existing or Register New Modal */}
+      <LinkBarcodeModal
+        isOpen={showLinkModal}
+        barcode={unregisteredInventoryCode}
+        products={products}
+        onClose={() => setShowLinkModal(false)}
+        onRegisterNew={(code) => {
+          setUnregisteredInventoryCode(code);
+          setShowLinkModal(false);
+          setEditingProduct(null);
+          setIsProductModalOpen(true);
+        }}
+        onLinkToExisting={(productId, barcodeToLink) => {
+          const prod = products.find((p) => p.id === productId);
+          if (!prod) return;
+          const updated: Product = { ...prod, barcode: barcodeToLink };
+          updateProduct(updated);
+          setShowLinkModal(false);
+          setUnregisteredInventoryCode(null);
+          setSearchTerm(barcodeToLink);
+          setToastMsg(`✓ Código ${barcodeToLink} asignado con éxito a "${prod.name}"`);
+          setTimeout(() => setToastMsg(null), 4000);
+        }}
+      />
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-neutral-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span className="text-xs font-bold">{toastMsg}</span>
+          <button
+            type="button"
+            onClick={() => setToastMsg(null)}
+            className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

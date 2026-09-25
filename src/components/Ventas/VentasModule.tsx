@@ -11,6 +11,7 @@ import { GranelModal } from './GranelModal';
 import { SelectVariantModal } from './SelectVariantModal';
 import { BarcodeScannerModal } from '../Scanner/BarcodeScannerModal';
 import { BarcodeWorkflowGuideModal } from '../Scanner/BarcodeWorkflowGuideModal';
+import { LinkBarcodeModal } from '../Scanner/LinkBarcodeModal';
 import { ProductModal } from '../Inventario/ProductModal';
 import { getEffectiveStock, getComboDetails } from '../../utils/comboUtils';
 import {
@@ -45,6 +46,7 @@ import {
   Volume2,
   CheckCircle2,
   HelpCircle,
+  Link2,
   X,
   Scale,
   Coins,
@@ -124,6 +126,7 @@ export const VentasModule: React.FC = () => {
     storeProfile,
     sectorConfig,
     addProduct,
+    updateProduct,
   } = usePos();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -154,6 +157,7 @@ export const VentasModule: React.FC = () => {
   const [showLiveCameraScanner, setShowLiveCameraScanner] = useState(false);
   const [unregisteredScannedCode, setUnregisteredScannedCode] = useState<string | null>(null);
   const [showQuickRegisterModal, setShowQuickRegisterModal] = useState(false);
+  const [showLinkBarcodeModal, setShowLinkBarcodeModal] = useState(false);
   const [scannerFeedbackToast, setScannerFeedbackToast] = useState<{
     message: string;
     type: 'success' | 'warn' | 'info';
@@ -421,8 +425,9 @@ export const VentasModule: React.FC = () => {
 
     // Code not found in catalog!
     setUnregisteredScannedCode(clean);
+    setShowLinkBarcodeModal(true);
     setScannerFeedbackToast({
-      message: `Código no registrado: "${clean}". ¿Deseas darlo de alta ahora?`,
+      message: `Código no registrado: "${clean}". Elige registrar producto nuevo o vincularlo.`,
       type: 'warn',
     });
   };
@@ -723,21 +728,22 @@ export const VentasModule: React.FC = () => {
 
           {/* Unregistered Barcode Action Banner */}
           {unregisteredScannedCode && (
-            <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-150">
-              <div className="flex items-start sm:items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
-                  <Barcode className="w-4 h-4" />
+            <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 animate-in fade-in duration-150">
+              <div className="flex items-start md:items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+                  <Barcode className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-amber-950">
-                    Código no registrado: <span className="font-mono bg-white px-2 py-0.5 rounded border border-amber-300">{unregisteredScannedCode}</span>
+                  <p className="text-xs font-black text-amber-950 flex items-center gap-1.5 flex-wrap">
+                    <span>Código detectado:</span>
+                    <span className="font-mono bg-white px-2 py-0.5 rounded border border-amber-300 text-emerald-800 font-bold">{unregisteredScannedCode}</span>
                   </p>
-                  <p className="text-[11px] text-amber-800">
-                    Este código no está en el catálogo. ¿Deseas registrar este producto nuevo con este código?
+                  <p className="text-[11px] text-amber-800 mt-0.5">
+                    ¿Deseas registrar un nuevo producto o asignarlo a un producto existente de tu inventario?
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+              <div className="flex items-center gap-2 flex-wrap self-end md:self-auto shrink-0">
                 <button
                   type="button"
                   onClick={() => setUnregisteredScannedCode(null)}
@@ -747,11 +753,19 @@ export const VentasModule: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowQuickRegisterModal(true)}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-neutral-950 hover:bg-black text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                  onClick={() => setShowLinkBarcodeModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-neutral-100 text-neutral-800 border border-neutral-300 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                 >
-                  <Plus className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Registrar Producto</span>
+                  <Link2 className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Vincular a Existente</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickRegisterModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Registrar Nuevo</span>
                 </button>
               </div>
             </div>
@@ -1564,6 +1578,7 @@ export const VentasModule: React.FC = () => {
         <ProductModal
           categories={categories}
           allProducts={products}
+          initialBarcode={unregisteredScannedCode || undefined}
           initialSku={unregisteredScannedCode || undefined}
           onSave={(productData) => {
             const newProduct = addProduct(productData);
@@ -1581,6 +1596,41 @@ export const VentasModule: React.FC = () => {
           onClose={() => setShowQuickRegisterModal(false)}
         />
       )}
+
+      {/* Link Barcode to Existing Product or Register New Modal */}
+      <LinkBarcodeModal
+        isOpen={showLinkBarcodeModal}
+        barcode={unregisteredScannedCode}
+        products={products}
+        onClose={() => setShowLinkBarcodeModal(false)}
+        onRegisterNew={(code) => {
+          setUnregisteredScannedCode(code);
+          setShowLinkBarcodeModal(false);
+          setShowQuickRegisterModal(true);
+        }}
+        onLinkToExisting={(productId, barcodeToLink) => {
+          const prod = products.find((p) => p.id === productId);
+          if (!prod) return;
+          const updated: Product = { ...prod, barcode: barcodeToLink };
+          updateProduct(updated);
+          setUnregisteredScannedCode(null);
+          setShowLinkBarcodeModal(false);
+          playBeep();
+          if (prod.stock > 0) {
+            addToCart(updated);
+            setScannerFeedbackToast({
+              message: `✓ Código ${barcodeToLink} asignado a ${prod.name} y agregado al ticket`,
+              type: 'success',
+            });
+          } else {
+            setScannerFeedbackToast({
+              message: `✓ Código ${barcodeToLink} asignado a ${prod.name} (Sin stock)`,
+              type: 'warn',
+            });
+          }
+          setTimeout(() => setScannerFeedbackToast(null), 4000);
+        }}
+      />
 
       {/* Real Barcode Interactive Workflow Guide Modal */}
       <BarcodeWorkflowGuideModal
