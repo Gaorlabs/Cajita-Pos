@@ -1,365 +1,167 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import { usePos } from '../context/PosContext';
 import {
-  Menu,
-  AlertTriangle,
-  Clock,
-  Lock,
-  Unlock,
-  ChevronDown,
-  Activity,
-  Receipt,
-  Sliders,
+  LayoutGrid,
   LogOut,
   Sparkles,
-  ExternalLink,
-  ShieldCheck,
-  ArrowUpRight,
   Maximize,
   Minimize,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useFullscreen } from '../utils/fullscreen';
-import { OpenShiftModal } from './Ventas/OpenShiftModal';
-import { CloseShiftModal } from './Ventas/CloseShiftModal';
-import { ShiftSummaryModal } from './Ventas/ShiftSummaryModal';
-import { CashMovementModal } from './Ventas/CashMovementModal';
+import { CajitaLogo } from './CajitaLogo';
 
 interface HeaderProps {
-  onToggleMobileSidebar: () => void;
+  onToggleMobileSidebar?: () => void;
   isSidebarCollapsed?: boolean;
   onToggleSidebarCollapse?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  onToggleMobileSidebar,
-  isSidebarCollapsed = false,
-  onToggleSidebarCollapse,
-}) => {
+export const Header: React.FC<HeaderProps> = () => {
   const {
     currentUser,
-    activeShift,
-    sales,
-    getLowStockProducts,
+    activeModule,
     setActiveModule,
-    sectorConfig,
     logout,
+    darkMode,
+    toggleDarkMode,
   } = usePos();
 
   const { isFullscreen, isSupported, toggle: toggleFullscreen } = useFullscreen();
-  const [timeStr, setTimeStr] = useState('');
-
-  // Shift & Sales modals state directly in Header
-  const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
-  const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
-  const [showShiftSummaryModal, setShowShiftSummaryModal] = useState(false);
-  const [showDailySummaryModal, setShowDailySummaryModal] = useState(false);
-  const [showShiftDropdown, setShowShiftDropdown] = useState(false);
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setTimeStr(
-        now.toLocaleDateString('es-PE', {
-          weekday: 'short',
-          day: '2-digit',
-          month: 'short',
-        }) +
-          ' | ' +
-          now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const lowStockCount = getLowStockProducts().length;
-
-  // Real-time sales calculations for header stats & sparkline
-  const todaySales = useMemo(() => {
-    const now = new Date();
-    return sales.filter((s) => {
-      const d = new Date(s.date);
-      return (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth() &&
-        d.getDate() === now.getDate()
-      );
-    });
-  }, [sales]);
-
-  const todayTotal = useMemo(() => {
-    return todaySales.reduce((sum, s) => sum + s.total, 0);
-  }, [todaySales]);
-
-  const shiftSales = useMemo(() => {
-    if (!activeShift) return [];
-    return sales.filter((s) => s.shiftId === activeShift.id);
-  }, [sales, activeShift]);
-
-  const shiftTotal = useMemo(() => {
-    return shiftSales.reduce((sum, s) => sum + s.total, 0);
-  }, [shiftSales]);
-
-  const handleLowStockClick = () => {
-    if (currentUser?.role === 'admin') {
-      setActiveModule('inventario');
-    }
-  };
-
-  const handleMenuButtonClick = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      onToggleMobileSidebar();
-    } else if (onToggleSidebarCollapse) {
-      onToggleSidebarCollapse();
-    } else {
-      onToggleMobileSidebar();
-    }
-  };
 
   return (
-    <>
-      <header className="h-16 bg-white border-b border-[#E4DFD3] px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 select-none gap-2 shadow-2xs">
-        {/* Left side: Mobile menu toggle / Rail toggle + Date & Time + Shift Options */}
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0 overflow-hidden">
+    <header className={`h-16 ${darkMode ? 'bg-[#121B16] border-[#223328]' : 'bg-white border-[#E4DFD3]'} border-b px-3 sm:px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 select-none gap-2 shadow-2xs transition-colors duration-200`}>
+      {/* Left side: Cajita Logo + Apps Launcher Button + Current Module */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0 overflow-hidden">
+        {/* Brand Cajita Logo */}
+        <button
+          type="button"
+          onClick={() => setActiveModule('inicio')}
+          className="flex items-center gap-2 p-0.5 rounded-xl hover:opacity-90 transition-transform active:scale-95 cursor-pointer shrink-0"
+          title="Ir al Inicio (Menú de Apps)"
+        >
+          <CajitaLogo size={36} bgHex="#2E7D5B" lidHex="#EAF3EC" checkHex="#2E7D5B" />
+        </button>
+
+        {/* Launchpad / Apps Launcher Button right next to Cajita logo */}
+        <button
+          type="button"
+          onClick={() => setActiveModule('inicio')}
+          className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer shrink-0 flex items-center gap-1.5 font-bold text-xs ${
+            activeModule === 'inicio'
+              ? 'bg-[#2E7D5B] text-white shadow-xs'
+              : darkMode
+              ? 'text-[#FAF6F0] hover:bg-[#1E2E25] border border-[#223328]'
+              : 'text-[#1C2B24] hover:bg-[#FAF6F0] border border-[#E4DFD3]'
+          }`}
+          aria-label="Ir al Menú Principal de Aplicaciones"
+          title="Menú de Aplicaciones (Inicio)"
+        >
+          <LayoutGrid className={`w-4 h-4 ${activeModule === 'inicio' ? 'text-white' : darkMode ? 'text-[#4ADE80]' : 'text-[#2E7D5B]'}`} />
+          <span className="text-xs font-bold">Apps</span>
+        </button>
+
+        {/* Active Module Indicator (Breadcrumb) */}
+        {activeModule !== 'inicio' && (
+          <div className={`hidden sm:flex items-center gap-1.5 text-xs font-medium shrink-0 pl-1 border-l ${darkMode ? 'border-[#223328] text-neutral-400' : 'border-[#E4DFD3] text-neutral-400'}`}>
+            <span className={`font-bold ${darkMode ? 'text-[#FAF6F0]' : 'text-neutral-900'}`}>
+              {activeModule === 'ventas'
+                ? 'Punto de Venta'
+                : activeModule === 'mis_ventas'
+                ? 'Caja'
+                : activeModule === 'inventario'
+                ? 'Stock / Inventario'
+                : activeModule === 'compras'
+                ? 'Compras'
+                : activeModule === 'reportes'
+                ? 'Reportes'
+                : activeModule === 'configuracion'
+                ? 'Configuración'
+                : 'Super Root'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Right side: Fullscreen, Theme Toggle, User Profile */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Fullscreen Mode Toggle */}
+        {isSupported && (
           <button
-            onClick={handleMenuButtonClick}
-            className="p-2 text-[#1C2B24] hover:bg-[#FAF6F0] rounded-xl transition-colors cursor-pointer shrink-0"
-            aria-label="Alternar menú lateral"
-            title={isSidebarCollapsed ? "Expandir menú lateral" : "Colapsar menú lateral"}
+            id="btn-header-fullscreen"
+            type="button"
+            onClick={toggleFullscreen}
+            className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 border ${
+              isFullscreen
+                ? 'bg-[#EAF3EC] dark:bg-[#1E2E25] text-[#2E7D5B] dark:text-[#4ADE80] border-[#2E7D5B]/30 dark:border-[#4ADE80]/30 shadow-2xs'
+                : 'text-neutral-600 dark:text-neutral-400 hover:text-[#1C2B24] dark:hover:text-white hover:bg-[#FAF6F0] dark:hover:bg-[#1E2E25] border-transparent'
+            }`}
+            aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+            title={isFullscreen ? "Restaurar tamaño normal" : "Pantalla completa (Maximizar espacio de venta)"}
           >
-            <Menu className="w-5 h-5 text-[#1C2B24]" />
-          </button>
-
-          {/* Date & Time */}
-          <div className="hidden xl:flex items-center gap-1.5 text-neutral-500 text-xs font-normal border-r border-[#E4DFD3] pr-3 shrink-0">
-            <Clock className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="whitespace-nowrap">{timeStr}</span>
-          </div>
-
-          {/* Shift status & Today Sales as simple text with icons, no background pills */}
-          <div className="relative flex items-center gap-4 sm:gap-6 shrink-0">
-            {activeShift ? (
-              <button
-                type="button"
-                onClick={() => setShowShiftDropdown(!showShiftDropdown)}
-                className="flex items-center gap-1 sm:gap-1.5 text-xs font-normal text-[#6B6B66] hover:text-[#1A1A1A] transition-colors cursor-pointer whitespace-nowrap shrink-0"
-                title="Ver detalles de la caja activa"
-              >
-                <div className="w-3.5 h-3.5 border border-[#6B6B66] rounded-xs shrink-0 flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-[#6B6B66] rounded-xs" />
-                </div>
-                <span className="hidden sm:inline">Caja {activeShift.shiftNumber.startsWith('TUR-') ? activeShift.shiftNumber : `TUR-00${activeShift.shiftNumber}`}:</span>
-                <span className="sm:hidden font-medium">Caja:</span>
-                <span className="font-mono font-medium text-[#1A1A1A]">S/ {shiftTotal.toFixed(2)}</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 text-[#5F5E5A] transition-transform shrink-0 ${
-                    showShiftDropdown ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
+            {isFullscreen ? (
+              <Minimize className="w-4 h-4 text-[#2E7D5B] dark:text-[#4ADE80]" />
             ) : (
-              <button
-                type="button"
-                onClick={() => setShowOpenShiftModal(true)}
-                className="flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors cursor-pointer whitespace-nowrap shrink-0"
-                title="Haz clic para aperturar turno de caja"
-              >
-                <Lock className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                <span className="hidden sm:inline">Caja Cerrada (Abrir)</span>
-                <span className="sm:hidden">Abrir Caja</span>
-              </button>
+              <Maximize className="w-4 h-4" />
             )}
+          </button>
+        )}
 
-            {/* Real-time Today Sales - Simple Text with icon */}
-            <button
-              type="button"
-              onClick={() => setShowDailySummaryModal(true)}
-              className="hidden lg:flex items-center gap-1.5 text-xs font-normal text-[#6B6B66] hover:text-[#1A1A1A] transition-colors cursor-pointer whitespace-nowrap shrink-0"
-              title="Ver reporte consolidado de ventas de hoy"
-            >
-              <div className="w-3.5 h-3.5 border border-[#6B6B66] rounded-xs shrink-0 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 bg-[#6B6B66] rounded-xs" />
-              </div>
-              <span>Venta hoy:</span>
-              <span className="font-mono font-medium text-[#1A1A1A]">S/ {todayTotal.toFixed(2)}</span>
-            </button>
-
-            {/* Shift Dropdown Popover */}
-            {showShiftDropdown && activeShift && (
-              <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-neutral-200 rounded-2xl shadow-xl p-3.5 z-30 space-y-3 animate-in fade-in-50 zoom-in-95 duration-150">
-                <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-                  <div>
-                    <div className="text-xs font-bold text-neutral-900">Caja #{activeShift.shiftNumber}</div>
-                    <div className="text-[11px] text-neutral-500">{activeShift.cashierName}</div>
-                  </div>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
-                    Turno Abierto
-                  </span>
-                </div>
-
-                <div className="space-y-1.5 text-xs font-medium">
-                  <div className="flex justify-between text-neutral-600">
-                    <span>Fondo Inicial:</span>
-                    <span className="font-mono font-bold text-neutral-900">
-                      S/ {(activeShift.initialCash || 0).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-neutral-600">
-                    <span>Ventas del Turno:</span>
-                    <span className="font-mono font-bold text-emerald-700">S/ {shiftTotal.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-neutral-100 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowShiftSummaryModal(true);
-                      setShowShiftDropdown(false);
-                    }}
-                    className="px-2 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <Receipt className="w-3.5 h-3.5 text-neutral-600" />
-                    <span>Corte X</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCloseShiftModal(true);
-                      setShowShiftDropdown(false);
-                    }}
-                    className="px-2 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <Lock className="w-3.5 h-3.5 text-rose-600" />
-                    <span>Cerrar Caja</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right side: Low Stock Alert & User Profile */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Low Stock Pill - The ONLY solid badge per specification */}
-          {lowStockCount > 0 && currentUser?.role === 'admin' && (
-            <button
-              onClick={handleLowStockClick}
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-[#FAEEDA] hover:bg-[#F3E2BD] text-[#633806] rounded-xl text-xs font-medium transition-colors cursor-pointer border border-[#EF9F27]/30 whitespace-nowrap shrink-0"
-              title="Ver productos con bajo stock en inventario"
-            >
-              <div className="w-3.5 h-3.5 border border-[#633806] rounded-xs shrink-0 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 bg-[#633806] rounded-xs" />
-              </div>
-              <span className="hidden sm:inline whitespace-nowrap">
-                Stock bajo: <strong className="font-bold">{lowStockCount}</strong>
-              </span>
-              <span className="sm:hidden font-bold">
-                {lowStockCount}
-              </span>
-            </button>
+        {/* Theme Toggle Button (Claro / Oscuro) */}
+        <button
+          id="btn-header-theme"
+          type="button"
+          onClick={toggleDarkMode}
+          className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 border ${
+            darkMode
+              ? 'bg-[#1E2E25] text-[#5EEAD4] border-[#2A3E33] shadow-2xs'
+              : 'text-neutral-600 hover:text-[#1C2B24] hover:bg-[#FAF6F0] border-transparent'
+          }`}
+          aria-label={darkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
+          title={darkMode ? "Modo Oscuro activo (clic para Modo Claro)" : "Modo Claro activo (clic para Modo Oscuro)"}
+        >
+          {darkMode ? (
+            <Moon className="w-4 h-4 text-[#5EEAD4]" />
+          ) : (
+            <Sun className="w-4 h-4 text-[#F59E0B]" />
           )}
+        </button>
 
-          {/* Fullscreen Mode Toggle */}
-          {isSupported && (
-            <button
-              id="btn-header-fullscreen"
-              type="button"
-              onClick={toggleFullscreen}
-              className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 border ${
-                isFullscreen
-                  ? 'bg-[#EAF3EC] text-[#2E7D5B] border-[#2E7D5B]/30 shadow-2xs'
-                  : 'text-neutral-600 hover:text-[#1C2B24] hover:bg-[#FAF6F0] border-transparent'
-              }`}
-              aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
-              title={isFullscreen ? "Restaurar tamaño normal" : "Pantalla completa (Maximizar espacio de venta)"}
-            >
-              {isFullscreen ? (
-                <Minimize className="w-4 h-4 text-[#2E7D5B]" />
-              ) : (
-                <Maximize className="w-4 h-4" />
-              )}
-            </button>
-          )}
-
-          {/* Current User Badge */}
-          {currentUser && (
-            <div className="flex items-center gap-2 pl-2 border-l border-neutral-200">
-              <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-[#1C2B24] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                  {currentUser.name.charAt(0)}
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
+        {/* Current User Badge */}
+        {currentUser && (
+          <div className="flex items-center gap-2 pl-2 border-l border-neutral-200 dark:border-[#223328]">
+            <div className="relative">
+              <div className="w-8 h-8 rounded-full bg-[#1C2B24] dark:bg-[#203D2C] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                {currentUser.name.charAt(0)}
               </div>
-              <div className="hidden md:block text-right leading-tight">
-                <p className="text-xs font-bold text-neutral-900">{currentUser.name}</p>
-                <p className={`text-[10px] uppercase tracking-wider font-bold ${
-                  currentUser.role === 'super_root'
-                    ? 'text-amber-600 font-black'
-                    : currentUser.role === 'admin'
-                    ? 'text-[#2E7D5B]'
-                    : 'text-neutral-500'
-                }`}>
-                  {currentUser.role === 'super_root' ? 'Super Root' : currentUser.role === 'admin' ? 'Administrador' : 'Cajero'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={logout}
-                title="Volver al Portal de Bienvenida, Onboarding o Demo"
-                className="ml-1 p-1.5 sm:px-2.5 sm:py-1.5 bg-[#FAF6F0] hover:bg-[#EAF3EC] text-neutral-700 hover:text-[#2E7D5B] border border-[#E4DFD3] rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#2E7D5B]" />
-                <span className="hidden sm:inline">Portal / Demo</span>
-                <LogOut className="w-3.5 h-3.5 text-neutral-400 sm:ml-0.5" />
-              </button>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#121B16]" />
             </div>
-          )}
-        </div>
-      </header>
-
-      {/* Open Shift Modal */}
-      {showOpenShiftModal && (
-        <OpenShiftModal
-          onClose={() => setShowOpenShiftModal(false)}
-          onSuccess={() => setShowOpenShiftModal(false)}
-        />
-      )}
-
-      {/* Close Shift Modal */}
-      {showCloseShiftModal && activeShift && (
-        <CloseShiftModal
-          shift={activeShift}
-          sales={sales}
-          onClose={() => setShowCloseShiftModal(false)}
-          onSuccess={() => {
-            setShowCloseShiftModal(false);
-            setShowShiftSummaryModal(true);
-          }}
-        />
-      )}
-
-      {/* Shift Summary Modal */}
-      {showShiftSummaryModal && activeShift && (
-        <ShiftSummaryModal
-          shift={activeShift}
-          sales={shiftSales}
-          onClose={() => setShowShiftSummaryModal(false)}
-        />
-      )}
-
-      {/* Daily Summary Modal */}
-      {showDailySummaryModal && (
-        <ShiftSummaryModal
-          shift={null}
-          sales={todaySales}
-          customTitle="Reporte de Ventas del Día (Tiempo Real)"
-          subtitle={`Total vendido hoy: S/ ${todayTotal.toFixed(2)} (${todaySales.length} comprobantes emitidos)`}
-          onClose={() => setShowDailySummaryModal(false)}
-        />
-      )}
-    </>
+            <div className="hidden md:block text-right leading-tight">
+              <p className="text-xs font-bold text-neutral-900 dark:text-[#FAF6F0]">{currentUser.name}</p>
+              <p className={`text-[10px] uppercase tracking-wider font-bold ${
+                currentUser.role === 'super_root'
+                  ? 'text-amber-600 font-black'
+                  : currentUser.role === 'admin'
+                  ? 'text-[#2E7D5B] dark:text-[#4ADE80]'
+                  : 'text-neutral-500 dark:text-neutral-400'
+              }`}>
+                {currentUser.role === 'super_root' ? 'Super Root' : currentUser.role === 'admin' ? 'Administrador' : 'Cajero'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={logout}
+              title="Volver al Portal de Bienvenida, Onboarding o Demo"
+              className="ml-1 p-1.5 sm:px-2.5 sm:py-1.5 bg-[#FAF6F0] dark:bg-[#1E2E25] hover:bg-[#EAF3EC] dark:hover:bg-[#273B30] text-neutral-700 dark:text-[#FAF6F0] hover:text-[#2E7D5B] dark:hover:text-[#4ADE80] border border-[#E4DFD3] dark:border-[#2E4337] rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#2E7D5B] dark:text-[#4ADE80]" />
+              <span className="hidden sm:inline">Portal / Demo</span>
+              <LogOut className="w-3.5 h-3.5 text-neutral-400 sm:ml-0.5" />
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
   );
 };
-

@@ -231,7 +231,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [users, setUsers] = useState<User[]>(initial.users);
   const [license, setLicense] = useState<TenantLicense>(initial.license);
   const [tenants, setTenants] = useState<RegisteredTenant[]>(initial.tenants);
-  const [activeModule, setActiveModule] = useState<NavigationModule>('ventas');
+  const [activeModule, setActiveModule] = useState<NavigationModule>('inicio');
   const [businessSector, setBusinessSectorState] = useState<BusinessSectorId>(initial.businessSector);
   const [storeProfile, setStoreProfile] = useState<StoreProfile>(initial.storeProfile);
   const [categories, setCategories] = useState<Category[]>(initial.categories);
@@ -265,8 +265,12 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   }, [darkMode]);
 
@@ -371,7 +375,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return false;
       }
       setCurrentUser(found);
-      setActiveModule(found.role === 'super_root' ? 'super_root' : 'ventas');
+      setActiveModule('inicio');
       return true;
     }
     return false;
@@ -1091,7 +1095,7 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       billingWhatsApp: '999 888 777',
     });
 
-    setActiveModule('ventas');
+    setActiveModule('inicio');
   };
 
   return (

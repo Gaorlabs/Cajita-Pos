@@ -78,6 +78,14 @@ export const Sidebar: React.FC<{
 
   const navItems = [
     {
+      id: 'inicio' as NavigationModule,
+      label: 'Inicio (Apps)',
+      shortLabel: 'Apps',
+      icon: LayoutGrid,
+      adminOnly: false,
+      badge: null,
+    },
+    {
       id: 'ventas' as NavigationModule,
       label: 'Ventas (POS)',
       shortLabel: 'POS',

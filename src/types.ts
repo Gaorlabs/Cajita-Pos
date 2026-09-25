@@ -258,4 +258,4 @@ export interface Purchase {
   notes?: string;
 }
 
-export type NavigationModule = 'ventas' | 'inventario' | 'compras' | 'reportes' | 'mis_ventas' | 'configuracion' | 'super_root';
+export type NavigationModule = 'inicio' | 'ventas' | 'inventario' | 'compras' | 'reportes' | 'mis_ventas' | 'configuracion' | 'super_root';
