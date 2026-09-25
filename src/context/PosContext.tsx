@@ -22,6 +22,7 @@ import {
   CashDenominationCount,
   ShiftCashMovement,
   BlindAuditRecord,
+  LaunchpadIconTheme,
 } from '../types';
 import {
   INITIAL_USERS,
@@ -106,6 +107,8 @@ interface PosContextType {
   logout: () => void;
   darkMode: boolean;
   toggleDarkMode: () => void;
+  iconTheme: LaunchpadIconTheme;
+  setIconTheme: (theme: LaunchpadIconTheme) => void;
 
   // Shifts / Cash sessions & Arqueo Ciego (Anti-Robo y Cero Pérdidas)
   openCashShift: (initialCash: number, notes?: string) => CashShift;
@@ -251,6 +254,23 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
   });
+
+  const [iconTheme, setIconThemeState] = useState<LaunchpadIconTheme>(() => {
+    try {
+      const saved = localStorage.getItem('cajita_pos_icon_theme');
+      if (saved === 'solido' || saved === 'soft' || saved === 'monocromo' || saved === 'neon') {
+        return saved as LaunchpadIconTheme;
+      }
+    } catch {}
+    return 'soft'; // Default to beautiful soft / fintech
+  });
+
+  const setIconTheme = (theme: LaunchpadIconTheme) => {
+    setIconThemeState(theme);
+    try {
+      localStorage.setItem('cajita_pos_icon_theme', theme);
+    } catch {}
+  };
 
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
@@ -1135,6 +1155,8 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         logout,
         darkMode,
         toggleDarkMode,
+        iconTheme,
+        setIconTheme,
         addToCart,
         updateCartQty,
         updateCartDiscount,
