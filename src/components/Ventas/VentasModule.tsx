@@ -10,6 +10,7 @@ import { ShiftSummaryModal } from './ShiftSummaryModal';
 import { GranelModal } from './GranelModal';
 import { SelectVariantModal } from './SelectVariantModal';
 import { BarcodeScannerModal } from '../Scanner/BarcodeScannerModal';
+import { BarcodeWorkflowGuideModal } from '../Scanner/BarcodeWorkflowGuideModal';
 import { ProductModal } from '../Inventario/ProductModal';
 import { getEffectiveStock, getComboDetails } from '../../utils/comboUtils';
 import {
@@ -43,6 +44,7 @@ import {
   Keyboard,
   Volume2,
   CheckCircle2,
+  HelpCircle,
   X,
   Scale,
   Coins,
@@ -145,7 +147,7 @@ export const VentasModule: React.FC = () => {
 
   // Search input & Barcode scanner ref
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [showBarcodeDemo, setShowBarcodeDemo] = useState(false);
+  const [showBarcodeGuide, setShowBarcodeGuide] = useState(false);
   const [scannerFlash, setScannerFlash] = useState(false);
 
   // Real Mobile Camera Barcode Scanner & Quick Registration state
@@ -649,18 +651,16 @@ export const VentasModule: React.FC = () => {
               <span className="sm:hidden">Escanear</span>
             </button>
 
-            {/* Quick Barcode Demo / Gun Simulation Toggle */}
+            {/* Real Barcode Workflow Guide & Interactive Test */}
             <button
               type="button"
-              onClick={() => setShowBarcodeDemo(!showBarcodeDemo)}
-              className={`h-10 px-2.5 rounded-xl border flex items-center gap-1 text-xs font-bold transition-all cursor-pointer ${
-                showBarcodeDemo
-                  ? 'bg-neutral-900 border-neutral-900 text-white'
-                  : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border-neutral-200'
-              }`}
-              title="Ver códigos de prueba o simular pistola"
+              onClick={() => setShowBarcodeGuide(true)}
+              className="h-10 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shrink-0"
+              title="¿Cómo funciona el código de barras? Ver flujo real y probar"
             >
-              <ScanBarcode className="w-4 h-4" />
+              <HelpCircle className="w-4 h-4 text-emerald-600" />
+              <span className="hidden md:inline">Flujo Código de Barras</span>
+              <span className="md:hidden">Guía</span>
             </button>
 
             {/* View Mode Toggle: Grid vs List */}
@@ -753,51 +753,6 @@ export const VentasModule: React.FC = () => {
                   <Plus className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Registrar Producto</span>
                 </button>
-              </div>
-            </div>
-          )}
-
-          {/* Barcode Quick-Simulate Bar / Drawer */}
-          {showBarcodeDemo && (
-            <div className="p-3 bg-neutral-900 text-white rounded-xl space-y-2 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                  <Barcode className="w-4 h-4" />
-                  <span>Modo Lector de Código de Barras</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowBarcodeDemo(false)}
-                  className="text-neutral-400 hover:text-white p-1"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <p className="text-[11px] text-neutral-400">
-                Toca cualquier producto para simular el escaneo con pistola:
-              </p>
-              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-                {products.slice(0, 10).map((p) => {
-                  const effStock = getEffectiveStock(p, products);
-                  const isOut = effStock <= 0;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      disabled={isOut}
-                      onClick={() => handleSimulateScan(p.sku)}
-                      className={`text-[11px] font-mono px-2 py-1 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
-                        isOut
-                          ? 'bg-neutral-950 text-neutral-600 border-neutral-800 cursor-not-allowed'
-                          : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border-neutral-700'
-                      }`}
-                    >
-                      <ScanBarcode className="w-3 h-3 text-emerald-400" />
-                      <span className="font-bold">{p.sku}:</span>
-                      <span className="truncate max-w-[120px]">{p.name}</span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
           )}
@@ -1626,6 +1581,19 @@ export const VentasModule: React.FC = () => {
           onClose={() => setShowQuickRegisterModal(false)}
         />
       )}
+
+      {/* Real Barcode Interactive Workflow Guide Modal */}
+      <BarcodeWorkflowGuideModal
+        isOpen={showBarcodeGuide}
+        onClose={() => setShowBarcodeGuide(false)}
+        onOpenRegisterProduct={() => {
+          setUnregisteredScannedCode(null);
+          setShowQuickRegisterModal(true);
+        }}
+        onOpenLiveScanner={() => setShowLiveCameraScanner(true)}
+        onSimulateCode={(code) => handleProcessBarcodeScan(code)}
+        products={products}
+      />
     </div>
   );
 };
