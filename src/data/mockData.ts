@@ -202,6 +202,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-105',
     sku: 'SKU-2001',
+    barcode: '7750106001221',
     name: 'Gaseosa Inca Kola 1.5L',
     categoryId: 'cat-2',
     purchasePrice: 4.50,
@@ -235,6 +236,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-108',
     sku: 'SKU-3001',
+    barcode: '7750151000108',
     name: 'Leche Evaporada Gloria 400g',
     categoryId: 'cat-3',
     purchasePrice: 3.30,

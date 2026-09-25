@@ -4,6 +4,7 @@ import { Product, Category } from '../../types';
 import { CategoryIcon } from '../CategoryIcon';
 import { ProductModal } from './ProductModal';
 import { CategoryModal } from './CategoryModal';
+import { BarcodeScannerModal } from '../Scanner/BarcodeScannerModal';
 import { getEffectiveStock } from '../../utils/comboUtils';
 import {
   Package,
@@ -19,6 +20,7 @@ import {
   CheckCircle2,
   Gift,
   Sparkles,
+  Camera,
 } from 'lucide-react';
 
 export const InventarioModule: React.FC = () => {
@@ -41,6 +43,7 @@ export const InventarioModule: React.FC = () => {
   const [selectedCatFilter, setSelectedCatFilter] = useState<string>('all');
   const [productTypeFilter, setProductTypeFilter] = useState<'all' | 'standard' | 'combo'>('all');
   const [onlyLowStock, setOnlyLowStock] = useState(false);
+  const [showInventoryScanner, setShowInventoryScanner] = useState(false);
 
   // Modals state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -55,7 +58,10 @@ export const InventarioModule: React.FC = () => {
   // Filtered product list
   const filteredProducts = products.filter((p) => {
     const term = searchTerm.toLowerCase();
-    const matchesSearch = p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term);
+    const matchesSearch =
+      p.name.toLowerCase().includes(term) ||
+      p.sku.toLowerCase().includes(term) ||
+      (p.barcode && p.barcode.toLowerCase().includes(term));
     const matchesCategory = selectedCatFilter === 'all' || p.categoryId === selectedCatFilter;
     const matchesType =
       productTypeFilter === 'all'
@@ -175,16 +181,36 @@ export const InventarioModule: React.FC = () => {
           {/* Search & Filter Toolbar */}
           <div className="bg-white p-4 rounded-2xl border border-neutral-200 shadow-xs space-y-3">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              {/* Search Input */}
-              <div className="relative flex-1 w-full">
-                <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar por Nombre o SKU..."
-                  className="w-full pl-10 pr-4 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                />
+              {/* Search Input with Mobile Camera Barcode Scanner */}
+              <div className="flex gap-2 flex-1 w-full">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar por Nombre, Código de Barras o SKU..."
+                    className="w-full pl-10 pr-9 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400 hover:text-black cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowInventoryScanner(true)}
+                  className="px-3 py-2 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-neutral-950 text-xs font-black rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+                  title="Escanear código de barras con la cámara para buscar en inventario"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Escanear</span>
+                </button>
               </div>
 
               {/* Category Filter & Low stock */}
@@ -533,6 +559,25 @@ export const InventarioModule: React.FC = () => {
           }}
         />
       )}
+
+      {/* Inventory Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showInventoryScanner}
+        onClose={() => setShowInventoryScanner(false)}
+        onScan={(scannedCode) => {
+          setSearchTerm(scannedCode);
+          setShowInventoryScanner(false);
+        }}
+        title="Buscar Producto por Código"
+        subtitle="Apunta la cámara del celular al código de barras"
+        mode="single"
+        knownProducts={products.map((p) => ({
+          sku: p.sku,
+          barcode: p.barcode,
+          name: p.name,
+          salePrice: p.salePrice,
+        }))}
+      />
     </div>
   );
 };

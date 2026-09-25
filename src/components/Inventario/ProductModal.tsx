@@ -1,13 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { Product, Category, ComboComponent, ProductVariant } from '../../types';
 import { usePos } from '../../context/PosContext';
-import { X, Check, Package, Layers, Plus, Trash2, Gift, Sparkles, AlertCircle, Scale, Shirt, Pill, Tag } from 'lucide-react';
+import { X, Check, Package, Layers, Plus, Trash2, Gift, Sparkles, AlertCircle, Scale, Shirt, Pill, Tag, Camera, ScanBarcode } from 'lucide-react';
 import { getEffectiveStock } from '../../utils/comboUtils';
+import { BarcodeScannerModal } from '../Scanner/BarcodeScannerModal';
 
 interface ProductModalProps {
   product?: Product | null;
   categories: Category[];
   allProducts?: Product[];
+  initialSku?: string;
   onSave: (productData: any) => void;
   onClose: () => void;
 }
@@ -16,6 +18,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   product,
   categories,
   allProducts = [],
+  initialSku,
   onSave,
   onClose,
 }) => {
@@ -23,8 +26,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const [productType, setProductType] = useState<'standard' | 'combo'>(product?.type || 'standard');
   const [sku, setSku] = useState(
-    product?.sku || (productType === 'combo' ? `PACK-${Math.floor(100 + Math.random() * 900)}` : `SKU-${Math.floor(1000 + Math.random() * 9000)}`)
+    initialSku || product?.sku || (productType === 'combo' ? `PACK-${Math.floor(100 + Math.random() * 900)}` : `SKU-${Math.floor(1000 + Math.random() * 9000)}`)
   );
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [name, setName] = useState(product?.name || '');
   const [categoryId, setCategoryId] = useState(product?.categoryId || categories?.[0]?.id || '');
   const [purchasePrice, setPurchasePrice] = useState<number | ''>(product?.purchasePrice ?? '');
@@ -298,19 +302,35 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1">
-                {productType === 'combo' ? 'Código de Pack' : 'SKU / Código'}
-              </label>
-              <input
-                type="text"
-                value={sku}
-                onChange={(e) => setSku(e.target.value)}
-                placeholder={productType === 'combo' ? 'PACK-101' : 'SKU-1001'}
-                className="w-full py-2 px-3 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-medium text-neutral-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black font-mono"
-                required
-              />
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                  {productType === 'combo' ? 'Código de Pack' : 'Código de Barras / SKU'}
+                </label>
+                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  Cámara Móvil
+                </span>
+              </div>
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={sku}
+                  onChange={(e) => setSku(e.target.value)}
+                  placeholder={productType === 'combo' ? 'PACK-101' : 'Ej. 7750106001221'}
+                  className="flex-1 py-2 px-3 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-medium text-neutral-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black font-mono"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowBarcodeScanner(true)}
+                  className="px-2.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-xs rounded-xl flex items-center gap-1 transition-all shadow-xs shrink-0 cursor-pointer"
+                  title="Escanear código de barras con la cámara"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Escanear</span>
+                </button>
+              </div>
             </div>
 
             <div>
@@ -846,6 +866,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Mobile / Webcam Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showBarcodeScanner}
+        onClose={() => setShowBarcodeScanner(false)}
+        onScan={(scannedCode) => {
+          setSku(scannedCode);
+          setShowBarcodeScanner(false);
+        }}
+        title="Escanear Código de Barras"
+        subtitle="Apunta la cámara del celular al código de barras físico del producto"
+        mode="single"
+      />
     </div>
   );
 };

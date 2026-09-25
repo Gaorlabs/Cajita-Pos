@@ -341,8 +341,8 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = pass.trim();
 
-    // Check Super Root bypass credentials (PIN 1982 or root/super_root)
-    if (cleanPass === '1982' || cleanPass === '9999' || (cleanUser === 'root' || cleanUser === 'super_root') && (cleanPass === '123' || !cleanPass)) {
+    // Check Super Root credentials (PIN 1982 or root/super_root with PIN 1982)
+    if (cleanPass === '1982' || ((cleanUser === 'root' || cleanUser === 'super_root') && (cleanPass === '1982' || !cleanPass))) {
       const rootUser = users.find((u) => u.role === 'super_root') || INITIAL_USERS.find((u) => u.role === 'super_root') || {
         id: 'user-root',
         username: 'root',

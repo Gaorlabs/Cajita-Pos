@@ -9,6 +9,8 @@ import { CloseShiftModal } from './CloseShiftModal';
 import { ShiftSummaryModal } from './ShiftSummaryModal';
 import { GranelModal } from './GranelModal';
 import { SelectVariantModal } from './SelectVariantModal';
+import { BarcodeScannerModal } from '../Scanner/BarcodeScannerModal';
+import { ProductModal } from '../Inventario/ProductModal';
 import { getEffectiveStock, getComboDetails } from '../../utils/comboUtils';
 import {
   Search,
@@ -36,6 +38,7 @@ import {
   ShieldCheck,
   ScanBarcode,
   Barcode,
+  Camera,
   User,
   Keyboard,
   Volume2,
@@ -118,6 +121,7 @@ export const VentasModule: React.FC = () => {
     setIsDemoTour,
     storeProfile,
     sectorConfig,
+    addProduct,
   } = usePos();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -143,6 +147,15 @@ export const VentasModule: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [showBarcodeDemo, setShowBarcodeDemo] = useState(false);
   const [scannerFlash, setScannerFlash] = useState(false);
+
+  // Real Mobile Camera Barcode Scanner & Quick Registration state
+  const [showLiveCameraScanner, setShowLiveCameraScanner] = useState(false);
+  const [unregisteredScannedCode, setUnregisteredScannedCode] = useState<string | null>(null);
+  const [showQuickRegisterModal, setShowQuickRegisterModal] = useState(false);
+  const [scannerFeedbackToast, setScannerFeedbackToast] = useState<{
+    message: string;
+    type: 'success' | 'warn' | 'info';
+  } | null>(null);
 
   // Auto-dismiss demo tour popup after 5 seconds
   useEffect(() => {
@@ -312,11 +325,20 @@ export const VentasModule: React.FC = () => {
     setIsEditingCustomer(false);
   };
 
-  // Barcode / SKU auto-scanner trigger
-  const handleSimulateScan = (skuToScan: string) => {
+  // Barcode / SKU scan processor (Handles Mobile Camera, Handheld Gun, & Simulation)
+  const handleProcessBarcodeScan = (codeToScan: string) => {
+    const clean = codeToScan.trim();
+    if (!clean) return;
+
+    // Check direct match on standard product (by SKU, barcode, ID, or exact name)
     const targetProduct = products.find(
-      (p) => p.sku.toLowerCase() === skuToScan.toLowerCase() || p.id === skuToScan
+      (p) =>
+        p.sku.toLowerCase() === clean.toLowerCase() ||
+        (p.barcode && p.barcode.toLowerCase() === clean.toLowerCase()) ||
+        p.id.toLowerCase() === clean.toLowerCase() ||
+        p.name.toLowerCase() === clean.toLowerCase()
     );
+
     if (targetProduct) {
       const effStock = getEffectiveStock(targetProduct, products);
       if (effStock > 0) {
@@ -325,8 +347,87 @@ export const VentasModule: React.FC = () => {
         setScannerFlash(true);
         setTimeout(() => setScannerFlash(false), 500);
         setSearchQuery('');
+        setUnregisteredScannedCode(null);
+        setScannerFeedbackToast({
+          message: `✓ Agregado al ticket: ${targetProduct.name} (S/ ${targetProduct.salePrice.toFixed(2)})`,
+          type: 'success',
+        });
+        setTimeout(() => setScannerFeedbackToast(null), 3500);
+      } else {
+        setScannerFeedbackToast({
+          message: `⚠️ "${targetProduct.name}" no tiene stock disponible (Stock: 0)`,
+          type: 'warn',
+        });
+        setTimeout(() => setScannerFeedbackToast(null), 4000);
+      }
+      return;
+    }
+
+    // Check if it matches a variant SKU/barcode
+    let matchedParent: Product | undefined;
+    let matchedVar: any = undefined;
+    for (const prod of products) {
+      if (prod.hasVariants && prod.variants) {
+        const v = prod.variants.find(
+          (item) =>
+            (item.sku && item.sku.toLowerCase() === clean.toLowerCase()) ||
+            (item.barcode && item.barcode.toLowerCase() === clean.toLowerCase())
+        );
+        if (v) {
+          matchedParent = prod;
+          matchedVar = v;
+          break;
+        }
       }
     }
+
+    if (matchedParent && matchedVar) {
+      if (matchedVar.stock > 0) {
+        addToCart(matchedParent, 1, matchedVar);
+        playBeep();
+        setScannerFlash(true);
+        setTimeout(() => setScannerFlash(false), 500);
+        setSearchQuery('');
+        setUnregisteredScannedCode(null);
+        setScannerFeedbackToast({
+          message: `✓ Agregado: ${matchedParent.name} (${matchedVar.name})`,
+          type: 'success',
+        });
+        setTimeout(() => setScannerFeedbackToast(null), 3500);
+      } else {
+        setScannerFeedbackToast({
+          message: `⚠️ Variante ${matchedVar.name} sin stock`,
+          type: 'warn',
+        });
+      }
+      return;
+    }
+
+    // If only 1 product matches current filtered list in search box
+    if (filteredProducts.length === 1) {
+      const product = filteredProducts[0];
+      const effStock = getEffectiveStock(product, products);
+      if (effStock > 0) {
+        addToCart(product);
+        playBeep();
+        setScannerFlash(true);
+        setTimeout(() => setScannerFlash(false), 500);
+        setSearchQuery('');
+        return;
+      }
+    }
+
+    // Code not found in catalog!
+    setUnregisteredScannedCode(clean);
+    setScannerFeedbackToast({
+      message: `Código no registrado: "${clean}". ¿Deseas darlo de alta ahora?`,
+      type: 'warn',
+    });
+  };
+
+  // Barcode / SKU quick-simulate trigger
+  const handleSimulateScan = (skuToScan: string) => {
+    handleProcessBarcodeScan(skuToScan);
   };
 
   // Keyboard shortcut listener (F2: Search, F4: Cobrar, Esc: clear search)
@@ -380,37 +481,9 @@ export const VentasModule: React.FC = () => {
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const term = searchQuery.trim().toLowerCase();
+      const term = searchQuery.trim();
       if (!term) return;
-
-      // Exact match by SKU or exact name first
-      const exactMatch = products.find(
-        (p) => p.sku.toLowerCase() === term || p.name.toLowerCase() === term
-      );
-      if (exactMatch) {
-        const effStock = getEffectiveStock(exactMatch, products);
-        if (effStock > 0) {
-          addToCart(exactMatch);
-          playBeep();
-          setScannerFlash(true);
-          setTimeout(() => setScannerFlash(false), 500);
-          setSearchQuery('');
-          return;
-        }
-      }
-
-      // If only 1 product matches current filtered list
-      if (filteredProducts.length === 1) {
-        const product = filteredProducts[0];
-        const effStock = getEffectiveStock(product, products);
-        if (effStock > 0) {
-          addToCart(product);
-          playBeep();
-          setScannerFlash(true);
-          setTimeout(() => setScannerFlash(false), 500);
-          setSearchQuery('');
-        }
-      }
+      handleProcessBarcodeScan(term);
     }
   };
 
@@ -564,19 +637,30 @@ export const VentasModule: React.FC = () => {
               )}
             </div>
 
-            {/* Quick Barcode Scanner Toggle */}
+            {/* Real Camera Barcode Scanner Button (Mobile & Desktop) */}
+            <button
+              type="button"
+              onClick={() => setShowLiveCameraScanner(true)}
+              className="h-10 px-3 sm:px-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-neutral-950 font-black flex items-center gap-1.5 text-xs transition-all shadow-sm cursor-pointer shrink-0"
+              title="Abrir cámara del celular o laptop para escanear código de barras físico"
+            >
+              <Camera className="w-4 h-4" />
+              <span className="hidden sm:inline">Cámara</span>
+              <span className="sm:hidden">Escanear</span>
+            </button>
+
+            {/* Quick Barcode Demo / Gun Simulation Toggle */}
             <button
               type="button"
               onClick={() => setShowBarcodeDemo(!showBarcodeDemo)}
-              className={`h-10 px-3 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+              className={`h-10 px-2.5 rounded-xl border flex items-center gap-1 text-xs font-bold transition-all cursor-pointer ${
                 showBarcodeDemo
-                  ? 'bg-emerald-500 border-emerald-600 text-neutral-950 shadow-xs'
-                  : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border-neutral-200'
+                  ? 'bg-neutral-900 border-neutral-900 text-white'
+                  : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border-neutral-200'
               }`}
-              title="Lector de código de barras"
+              title="Ver códigos de prueba o simular pistola"
             >
               <ScanBarcode className="w-4 h-4" />
-              <span className="hidden md:inline">Escanear</span>
             </button>
 
             {/* View Mode Toggle: Grid vs List */}
@@ -607,6 +691,71 @@ export const VentasModule: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Real-time Scanner Feedback Toast */}
+          {scannerFeedbackToast && (
+            <div
+              className={`p-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-between animate-in fade-in slide-in-from-top-1 duration-150 ${
+                scannerFeedbackToast.type === 'success'
+                  ? 'bg-emerald-500 text-neutral-950 shadow-sm'
+                  : scannerFeedbackToast.type === 'warn'
+                  ? 'bg-amber-400 text-neutral-950 shadow-sm'
+                  : 'bg-neutral-900 text-white'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {scannerFeedbackToast.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                )}
+                <span>{scannerFeedbackToast.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setScannerFeedbackToast(null)}
+                className="p-1 hover:opacity-75 cursor-pointer ml-2"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Unregistered Barcode Action Banner */}
+          {unregisteredScannedCode && (
+            <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-150">
+              <div className="flex items-start sm:items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+                  <Barcode className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-amber-950">
+                    Código no registrado: <span className="font-mono bg-white px-2 py-0.5 rounded border border-amber-300">{unregisteredScannedCode}</span>
+                  </p>
+                  <p className="text-[11px] text-amber-800">
+                    Este código no está en el catálogo. ¿Deseas registrar este producto nuevo con este código?
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setUnregisteredScannedCode(null)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-neutral-600 hover:bg-amber-100 transition-colors cursor-pointer"
+                >
+                  Descartar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickRegisterModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-neutral-950 hover:bg-black text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Registrar Producto</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Barcode Quick-Simulate Bar / Drawer */}
           {showBarcodeDemo && (
@@ -1434,6 +1583,47 @@ export const VentasModule: React.FC = () => {
             setVariantModalProduct(null);
           }}
           onClose={() => setVariantModalProduct(null)}
+        />
+      )}
+
+      {/* Real Mobile Camera Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={showLiveCameraScanner}
+        onClose={() => setShowLiveCameraScanner(false)}
+        onScan={(scannedCode) => {
+          handleProcessBarcodeScan(scannedCode);
+        }}
+        title="Escanear Producto para Venta"
+        subtitle="Apunta la cámara del celular al código de barras del producto"
+        mode="continuous"
+        knownProducts={products.map((p) => ({
+          sku: p.sku,
+          barcode: p.barcode,
+          name: p.name,
+          salePrice: p.salePrice,
+        }))}
+      />
+
+      {/* Quick Register Product from Unregistered Barcode */}
+      {showQuickRegisterModal && (
+        <ProductModal
+          categories={categories}
+          allProducts={products}
+          initialSku={unregisteredScannedCode || undefined}
+          onSave={(productData) => {
+            const newProduct = addProduct(productData);
+            setShowQuickRegisterModal(false);
+            setUnregisteredScannedCode(null);
+            // Immediately add to cart for seamless sale
+            addToCart(newProduct);
+            playBeep();
+            setScannerFeedbackToast({
+              message: `✓ ¡Producto ${newProduct.name} registrado y agregado a la venta!`,
+              type: 'success',
+            });
+            setTimeout(() => setScannerFeedbackToast(null), 4000);
+          }}
+          onClose={() => setShowQuickRegisterModal(false)}
         />
       )}
     </div>

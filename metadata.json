@@ -1,6 +1,8 @@
 {
   "name": "Cajita",
   "description": "Cajita - Tu negocio, bien cuadrado. Sistema de Punto de Venta (POS), inventario, caja y ventas.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "camera"
+  ],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

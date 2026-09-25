@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePos } from '../context/PosContext';
 import {
   Lock,
@@ -48,8 +48,16 @@ export const LoginView: React.FC = () => {
 
   // PIN Entry
   const availableUsers = (users && users.length > 0) ? users : [];
-  const rootUser = availableUsers.find((u) => u.role === 'super_root' || u.role === 'admin') || availableUsers[0] || { id: 'root', name: 'Administrador', username: 'root', role: 'admin', pin: '1982', active: true };
-  const [selectedUser, setSelectedUser] = useState<UserType>(rootUser);
+  const superRootUser = availableUsers.find((u) => u.role === 'super_root') || {
+    id: 'user-root',
+    name: 'Super Root (Dueño SaaS)',
+    username: 'root',
+    role: 'super_root',
+    pin: '1982',
+    active: true,
+  };
+  const adminOrStaffUser = availableUsers.find((u) => u.role === 'admin' || u.role === 'cajero') || availableUsers[0];
+  const [selectedUser, setSelectedUser] = useState<UserType>(adminOrStaffUser || superRootUser);
   const [pin, setPin] = useState('');
 
   // Acciones de PIN
@@ -58,8 +66,16 @@ export const LoginView: React.FC = () => {
       const newPin = pin + num;
       setPin(newPin);
       setError('');
+      if (newPin === '1982') {
+        const success = login('root', '1982');
+        if (!success) {
+          setError('PIN incorrecto');
+          setPin('');
+        }
+        return;
+      }
       if (newPin.length === 4) {
-        const usernameToTry = newPin === '1982' ? 'root' : (rootUser?.username || selectedUser?.username || 'root');
+        const usernameToTry = selectedUser?.username || 'admin';
         const success = login(usernameToTry, newPin);
         if (!success) {
           setError(`PIN incorrecto`);
@@ -73,6 +89,34 @@ export const LoginView: React.FC = () => {
     setPin((prev) => prev.slice(0, -1));
     setError('');
   };
+
+  // Soporte de teclado físico para ingreso de PIN (1982, backspace, esc)
+  useEffect(() => {
+    if (activeView !== 'pin_entry') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar si el foco está en un input de texto
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        handleNumClick(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleBackspace();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setActiveView('main_menu');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeView, pin, selectedUser]);
 
   // Enviar Registro Mínimo con Yape
   const [isSubmittingWhatsapp, setIsSubmittingWhatsapp] = useState(false);
@@ -626,7 +670,7 @@ export const LoginView: React.FC = () => {
               Ingresa tu PIN de Acceso
             </h2>
             <p className="text-[11px] text-neutral-500 font-medium">
-              Acceso Root / Administrador de Caja
+              Acceso Super Root (PIN: 1982) / Administrador o Cajero
             </p>
           </div>
 

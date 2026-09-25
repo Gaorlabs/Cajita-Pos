@@ -47,6 +47,7 @@ export interface ProductVariant {
   id: string; // e.g. "var-1"
   name: string; // e.g. "Talla S", "Talla M", "38", "39", "Rojo - M"
   sku?: string;
+  barcode?: string;
   stock: number;
   salePrice?: number; // Optional custom price for variant
 }
@@ -54,6 +55,7 @@ export interface ProductVariant {
 export interface Product {
   id: string;
   sku: string;
+  barcode?: string;
   name: string;
   categoryId: string;
   purchasePrice: number;
