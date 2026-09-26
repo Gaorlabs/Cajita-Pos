@@ -261,3 +261,12 @@ export interface Purchase {
 export type NavigationModule = 'inicio' | 'ventas' | 'inventario' | 'compras' | 'reportes' | 'mis_ventas' | 'configuracion' | 'super_root';
 
 export type LaunchpadIconTheme = 'solido' | 'soft' | 'monocromo' | 'neon';
+
+export interface StoreProfile {
+  name: string;
+  ruc: string;
+  address: string;
+  phone: string;
+  n8nWebhookUrl?: string;
+  n8nWebhookActive?: boolean;
+}

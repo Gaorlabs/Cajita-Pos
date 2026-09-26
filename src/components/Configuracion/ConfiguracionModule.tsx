@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePos } from '../../context/PosContext';
 import { BusinessSectorId, BUSINESS_SECTORS } from '../../data/businessSectors';
 import { UserManagementSection } from './UserManagementSection';
+import { N8nWebhookConfigSection } from './N8nWebhookConfigSection';
 import {
   Store,
   Coffee,
@@ -26,6 +27,7 @@ import {
   Check,
   Info,
   Users,
+  Webhook,
 } from 'lucide-react';
 
 export const ConfiguracionModule: React.FC = () => {
@@ -38,7 +40,7 @@ export const ConfiguracionModule: React.FC = () => {
     resetToInitialData,
   } = usePos();
 
-  const [activeTab, setActiveTab] = useState<'tienda' | 'usuarios'>('tienda');
+  const [activeTab, setActiveTab] = useState<'tienda' | 'usuarios' | 'integraciones'>('tienda');
   const [selectedSector, setSelectedSector] = useState<BusinessSectorId>(businessSector);
   const [loadCatalogOption, setLoadCatalogOption] = useState(true);
   const [profileForm, setProfileForm] = useState(storeProfile);
@@ -177,10 +179,26 @@ export const ConfiguracionModule: React.FC = () => {
           <Users className="w-4 h-4 text-emerald-400" />
           <span>Usuarios & Licencia (Staff)</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('integraciones')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+            activeTab === 'integraciones'
+              ? 'bg-neutral-900 text-white shadow-xs'
+              : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+          }`}
+        >
+          <Webhook className="w-4 h-4 text-emerald-400" />
+          <span>WhatsApp Webhook (n8n)</span>
+        </button>
       </div>
 
       {/* RENDER USER MANAGEMENT TAB */}
       {activeTab === 'usuarios' && <UserManagementSection />}
+
+      {/* RENDER INTEGRACIONES (N8N WEBHOOK) TAB */}
+      {activeTab === 'integraciones' && <N8nWebhookConfigSection />}
 
       {/* RENDER TIENDA & RUBRO TAB */}
       {activeTab === 'tienda' && (

@@ -5,6 +5,7 @@ import {
   MessageSquare,
   Send,
   CheckCircle2,
+  AlertCircle,
   ExternalLink,
   X,
   Phone,
@@ -18,8 +19,16 @@ import {
   FileDown,
   ArrowRight,
   ShieldCheck,
+  RefreshCw,
+  Webhook,
 } from 'lucide-react';
 import { CajitaLogo } from '../CajitaLogo';
+import {
+  sendSaleVoucherToN8n,
+  DEFAULT_N8N_WEBHOOK_URL,
+  formatPeruPhoneForEvolution,
+  WebhookDispatchResult,
+} from '../../utils/voucherWebhook';
 
 interface WhatsappIntegrationModalProps {
   sale?: Sale;
@@ -38,9 +47,11 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
   });
 
   const [activeTab, setActiveTab] = useState<'whatsapp_chat' | 'pdf_ticket'>('whatsapp_chat');
-  const [sendingStage, setSendingStage] = useState<number>(0); // 0: idle, 1: generating pdf, 2: packaging, 3: sending
+  const [sendingStage, setSendingStage] = useState<number>(0); // 0: idle, 1: connecting n8n, 2: gotenberg, 3: evolution api
   const [isSending, setIsSending] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
+  const [dispatchError, setDispatchError] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<WebhookDispatchResult | null>(null);
   const [copied, setCopied] = useState(false);
 
   // Auto-save phone to localStorage for comfortable repeated demos
@@ -258,28 +269,74 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
     printWindow.document.close();
   };
 
-  // High-interactivity sending sequence with animated stages (purely on-screen simulation, no redirect)
+  // Real dispatching to n8n webhook (with fallback to direct WhatsApp Web link)
   const handleSendInteractiveWhatsapp = async () => {
+    if (!phoneNumber.trim()) return;
     setIsSending(true);
     setSentSuccess(false);
+    setDispatchError(null);
+
+    // Prepare sale object (actual or realistic fallback)
+    const effectiveSale: Sale = sale || {
+      id: 'demo-sale-wh',
+      ticketNumber: ticketNumber,
+      date: new Date().toISOString(),
+      cashierId: 'cajero-pos',
+      cashierName: 'Cajero Principal',
+      subtotal: parseFloat(totalAmount) * 0.9,
+      discountTotal: 0,
+      total: parseFloat(totalAmount),
+      payments: [{ method: 'wallet', amount: parseFloat(totalAmount), reference: 'Yape' }],
+      amountPaid: parseFloat(totalAmount),
+      changeAmount: 0,
+      customerName: 'Cliente WhatsApp',
+      items: [
+        {
+          productId: 'prod-demo-1',
+          productName: 'Consumo / Compra en Tienda',
+          sku: 'DEMO-01',
+          quantity: 1,
+          unitPrice: parseFloat(totalAmount),
+          purchasePrice: parseFloat(totalAmount) * 0.6,
+          discount: 0,
+          subtotal: parseFloat(totalAmount),
+        },
+      ],
+    };
+
+    const webhookUrl = storeProfile.n8nWebhookUrl || DEFAULT_N8N_WEBHOOK_URL;
 
     try {
-      // Stage 1: Generating PDF
+      // Stage 1: Connecting with n8n webhook
       setSendingStage(1);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await new Promise((r) => setTimeout(r, 300));
 
-      // Stage 2: Packaging Voucher
+      // Stage 2: Gotenberg & Evolution API Processing
       setSendingStage(2);
-      await new Promise((resolve) => setTimeout(resolve, 700));
 
-      // Stage 3: Connecting to WhatsApp and Delivering
-      setSendingStage(3);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const result = await sendSaleVoucherToN8n(
+        webhookUrl,
+        effectiveSale,
+        storeProfile,
+        phoneNumber,
+        effectiveSale.customerName
+      );
 
-      // Simulation complete: delivery confirmed without external redirect
-      setSentSuccess(true);
-    } catch (err) {
-      console.warn('Error in WhatsApp simulation', err);
+      setLastResult(result);
+
+      if (result.success) {
+        setSendingStage(3);
+        await new Promise((r) => setTimeout(r, 350));
+        setSentSuccess(true);
+        setDispatchError(null);
+      } else {
+        setDispatchError(result.message);
+        setSentSuccess(false);
+      }
+    } catch (err: any) {
+      console.error('Error sending voucher to n8n:', err);
+      setDispatchError(err.message || 'Error de conexión con el servidor n8n');
+      setSentSuccess(false);
     } finally {
       setIsSending(false);
       setSendingStage(0);
@@ -581,42 +638,81 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
               <div className="flex items-center justify-between text-xs font-black text-emerald-900">
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-                  {sendingStage === 1 && '⚡ Paso 1 de 3: Generando archivo Voucher PDF...'}
-                  {sendingStage === 2 && '📦 Paso 2 de 3: Adjuntando comprobante digital...'}
-                  {sendingStage === 3 && '📲 Paso 3 de 3: ¡Listo! Conectando con WhatsApp...'}
+                  {sendingStage === 1 && '⚡ Conectando con Webhook n8n (mariasuite.cloud)...'}
+                  {sendingStage === 2 && '📄 Gotenberg convirtiendo HTML a PDF & Evolution API...'}
+                  {sendingStage === 3 && '📲 ¡Entregando comprobante a WhatsApp...!'}
                 </span>
-                <span className="font-mono">{sendingStage * 33}%</span>
+                <span className="font-mono">{sendingStage === 1 ? '35%' : sendingStage === 2 ? '75%' : '100%'}</span>
               </div>
               <div className="w-full bg-neutral-100 rounded-full h-2.5 overflow-hidden">
                 <div
                   className="bg-emerald-600 h-full rounded-full transition-all duration-300"
-                  style={{ width: `${sendingStage * 33.3}%` }}
+                  style={{ width: `${sendingStage === 1 ? 35 : sendingStage === 2 ? 75 : 100}%` }}
                 />
               </div>
               <p className="text-[11px] text-neutral-600 text-center font-medium">
-                Preparando el ticket de venta para entregarlo en vivo a tu celular...
+                Enviando datos al flujo de automatización de tu VPS en tiempo real...
               </p>
+            </div>
+          )}
+
+          {/* Error Banner with Fallback to direct wa.me link */}
+          {dispatchError && !isSending && (
+            <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 shadow-sm space-y-2.5 animate-in fade-in">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-xs sm:text-sm font-black text-amber-950">
+                    Aviso en el despacho del Webhook
+                  </h4>
+                  <p className="text-[11px] text-amber-900 mt-0.5 font-medium leading-relaxed">
+                    {dispatchError}
+                  </p>
+                  <p className="text-[10px] text-amber-700 mt-1">
+                    Puedes reintentar o usar el botón directo de WhatsApp Web para no demorar la atención del cliente.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200">
+                <a
+                  href={`https://wa.me/${getFullInternationalNumber()}?text=${encodeURIComponent(messageText)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Abrir WhatsApp Web directo (Fallback)</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={handleSendInteractiveWhatsapp}
+                  className="py-2 px-3 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Reintentar n8n
+                </button>
+              </div>
             </div>
           )}
 
           {/* Success Banner */}
           {sentSuccess && !isSending && (
-            <div className="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 shadow-sm space-y-2 animate-in fade-in">
+            <div className="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 shadow-sm space-y-2.5 animate-in fade-in">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <Check className="w-5 h-5" />
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-emerald-950">
-                    ¡Voucher simulado y enviado con éxito!
+                    ¡Voucher enviado con éxito a WhatsApp!
                   </h4>
                   <p className="text-[11px] text-emerald-800">
-                    El comprobante digital y el archivo PDF fueron entregados al WhatsApp de{' '}
-                    <strong>+51 {cleanNumber || 'Cliente'}</strong>.
+                    El comprobante en PDF fue generado por Gotenberg y entregado al número{' '}
+                    <strong>+51 {cleanNumber || 'Cliente'}</strong> vía Evolution API.
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex items-center gap-2 pt-1 border-t border-emerald-200/60">
                 <button
                   type="button"
                   onClick={handleOpenOrDownloadPdf}
@@ -627,10 +723,13 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSentSuccess(false)}
+                  onClick={() => {
+                    setSentSuccess(false);
+                    setDispatchError(null);
+                  }}
                   className="py-2 px-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
-                  Simular de nuevo
+                  Enviar a otro número
                 </button>
               </div>
             </div>
@@ -649,7 +748,7 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
 
           <button
             type="button"
-            disabled={isSending}
+            disabled={isSending || !phoneNumber.trim()}
             onClick={handleSendInteractiveWhatsapp}
             className={`flex-1 py-3.5 px-5 transition-all cursor-pointer flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg active:scale-[0.99] disabled:opacity-50 ${
               sentSuccess
@@ -659,21 +758,21 @@ export const WhatsappIntegrationModal: React.FC<WhatsappIntegrationModalProps> =
           >
             {isSending ? (
               <>
-                <Send className="w-4 h-4 animate-bounce" />
-                <span>Generando y Despachando...</span>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Despachando a n8n...</span>
               </>
             ) : sentSuccess ? (
               <>
                 <Check className="w-4 h-4 text-white" />
-                <span>¡Voucher Enviado a (+51 {cleanNumber || 'Cliente'})!</span>
+                <span>¡Entregado a (+51 {cleanNumber})!</span>
               </>
             ) : (
               <>
                 <Send className="w-4 h-4" />
                 <span>
                   {phoneNumber.trim()
-                    ? `Enviar a WhatsApp (+51 ${cleanNumber})`
-                    : 'Simular Envío de Voucher'}
+                    ? `Enviar Voucher WhatsApp (+51 ${cleanNumber})`
+                    : 'Ingresa un celular para enviar'}
                 </span>
               </>
             )}

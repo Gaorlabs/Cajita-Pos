@@ -68,6 +68,8 @@ export interface StoreProfile {
   ruc: string;
   address: string;
   phone: string;
+  n8nWebhookUrl?: string;
+  n8nWebhookActive?: boolean;
 }
 
 interface PosContextType {
@@ -192,13 +194,30 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : 'bodega';
         const savedProducts: Product[] = parsed.products || INITIAL_PRODUCTS;
 
+        const defaultWebhook = 'https://mn8nwebhook.mariasuite.cloud/webhook/sale-receipt-dispatch';
+        const secInfo = BUSINESS_SECTORS[sector].storeInfo;
+        const rawProfile = parsed.storeProfile || {
+          name: secInfo.storeName,
+          ruc: secInfo.ruc,
+          address: secInfo.address,
+          phone: secInfo.phone,
+        };
+        const resolvedProfile: StoreProfile = {
+          name: rawProfile.name || rawProfile.storeName || secInfo.storeName,
+          ruc: rawProfile.ruc || secInfo.ruc,
+          address: rawProfile.address || secInfo.address,
+          phone: rawProfile.phone || secInfo.phone,
+          n8nWebhookUrl: rawProfile.n8nWebhookUrl || defaultWebhook,
+          n8nWebhookActive: rawProfile.n8nWebhookActive !== undefined ? rawProfile.n8nWebhookActive : true,
+        };
+
         return {
           user: parsed.user || null,
           users: parsed.users || INITIAL_USERS,
           license: parsed.license || INITIAL_LICENSE,
           tenants: parsed.tenants || INITIAL_TENANTS,
           businessSector: sector,
-          storeProfile: parsed.storeProfile || BUSINESS_SECTORS[sector].storeInfo,
+          storeProfile: resolvedProfile,
           categories: parsed.categories || INITIAL_CATEGORIES,
           products: savedProducts,
           sales: parsed.sales || INITIAL_SALES,
@@ -212,13 +231,22 @@ export const PosProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const defaultSector: BusinessSectorId = 'bodega';
+    const secDefaultInfo = BUSINESS_SECTORS[defaultSector].storeInfo;
+    const fallbackProfile: StoreProfile = {
+      name: secDefaultInfo.storeName,
+      ruc: secDefaultInfo.ruc,
+      address: secDefaultInfo.address,
+      phone: secDefaultInfo.phone,
+      n8nWebhookUrl: 'https://mn8nwebhook.mariasuite.cloud/webhook/sale-receipt-dispatch',
+      n8nWebhookActive: true,
+    };
     return {
       user: null,
       users: INITIAL_USERS,
       license: INITIAL_LICENSE,
       tenants: INITIAL_TENANTS,
       businessSector: defaultSector,
-      storeProfile: BUSINESS_SECTORS[defaultSector].storeInfo,
+      storeProfile: fallbackProfile,
       categories: INITIAL_CATEGORIES,
       products: INITIAL_PRODUCTS,
       sales: INITIAL_SALES,
